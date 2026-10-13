@@ -97,7 +97,7 @@ body:not([data-mode=sky]) #fog{opacity:0;pointer-events:none}
 .card .im{width:100%;height:100%;box-shadow:0 0 0 .7px rgba(70,60,40,.2)}
 .card .f img{width:100%;height:100%;object-fit:contain;display:block;background:#f8f3e8}
 .card .b{left:-14px;right:-14px;top:50%;transform:translateY(-50%) rotateY(180deg);box-shadow:0 16px 24px -6px rgba(30,36,50,.3);display:flex}
-.card .bp{flex:1;display:flex;flex-direction:column;min-height:calc(var(--ch) + 28px);max-height:min(78vh,calc(106vh - var(--db) * 2 - var(--st) - 24px));
+.card .bp{flex:1;min-width:0;display:flex;flex-direction:column;min-height:calc(var(--ch) + 28px);max-height:min(78vh,calc(106vh - var(--db) * 2 - var(--st) - 24px));
   background:var(--rim) 0 0/100% 100% no-repeat,url(assets/back-p.webp) center/cover no-repeat #f4eee2;padding:30px 28px 24px;
   -webkit-mask:var(--dk) 0 0/100% 100% no-repeat;mask:var(--dk) 0 0/100% 100% no-repeat}
 .card .b .t{flex:0 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:none;scrollbar-width:none;padding-bottom:6px}
@@ -107,7 +107,7 @@ body:not([data-mode=sky]) #fog{opacity:0;pointer-events:none}
 .card .b .d{font:italic 21px/1 "IM Fell",serif;color:#6b6250;text-shadow:0 0 6px rgba(244,238,226,.95)}
 .card .b .d i{font-style:normal;font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;font-size:12px;letter-spacing:.3em;margin-left:10px;color:#8b8370}
 .card.wide .bp{background-image:var(--rim),url(assets/back-l.webp)}
-.card .b .t{margin-top:16px;font-size:14.5px;line-height:1.9;letter-spacing:.04em;color:#2f2b22;white-space:pre-wrap;text-shadow:0 0 6px rgba(244,238,226,.9),0 0 2px rgba(244,238,226,.9)}
+.card .b .t{margin-top:16px;font-size:14.5px;line-height:1.9;letter-spacing:.04em;color:#2f2b22;white-space:pre-wrap;overflow-wrap:anywhere;text-shadow:0 0 6px rgba(244,238,226,.9),0 0 2px rgba(244,238,226,.9)}
 .card.slip .fp{box-shadow:inset 0 0 0 1px rgba(112,94,66,.35)}
 .card.slip .bp{background:url(assets/paper.webp) #f6f1e6;box-shadow:inset 0 0 0 1px rgba(112,94,66,.35)}
 .credit{position:fixed;left:0;right:0;bottom:calc(var(--db) + 4px);text-align:center;font:italic 10px/1 "IM Fell",serif;color:var(--soft);opacity:.55;z-index:20;pointer-events:none;text-shadow:0 0 8px #fff}
