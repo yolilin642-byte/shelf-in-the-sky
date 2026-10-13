@@ -1250,29 +1250,39 @@ function setSky(k) {
   const s = skyCur();
   renderSkies();
   buzz();
-  sky.style.opacity = "0";
-  Promise.all([skyGet(s), new Promise((r) => setTimeout(r, 350))]).then(([im]) => {
+  const say = (t, key) => {
+    tip.textContent = t;
+    tip.dataset.k = key;
+    tip.classList.add("on");
+  }, hush = (key) => {
+    if (tip.dataset.k === key) tip.classList.remove("on");
+  };
+  const slow = setTimeout(() => {
+    if (skyCur() === s) say("\u8FD9\u7247\u5929\u5728\u8DEF\u4E0A\u2026", "skyLoad");
+  }, 600);
+  skyGet(s).then((im) => {
+    clearTimeout(slow);
+    hush("skyLoad");
     if (skyCur() !== s) return;
     if (!im) {
       SKYK = prev;
       renderSkies();
-      sky.style.opacity = "1";
-      tip.textContent = "\u8FD9\u7247\u5929\u6CA1\u62C9\u5230\uFF0C\u8FC7\u4E00\u4F1A\u513F\u518D\u6362";
-      tip.dataset.k = "skyMiss";
-      tip.classList.add("on");
-      setTimeout(() => {
-        if (tip.dataset.k === "skyMiss") tip.classList.remove("on");
-      }, 2500);
+      say("\u8FD9\u7247\u5929\u6CA1\u62C9\u5230\uFF0C\u8FC7\u4E00\u4F1A\u513F\u518D\u6362", "skyMiss");
+      setTimeout(() => hush("skyMiss"), 2500);
       return;
     }
     try {
       localStorage.setItem("shelfSky", k);
     } catch {
     }
-    skyPut(im);
-    skyLook(s);
-    for (const w of WI) wisp(w.el, w.q, w.ww);
-    sky.style.opacity = "1";
+    sky.style.opacity = "0";
+    setTimeout(() => {
+      if (skyCur() !== s) return;
+      skyPut(im);
+      skyLook(s);
+      for (const w of WI) wisp(w.el, w.q, w.ww);
+      sky.style.opacity = "1";
+    }, 350);
   });
 }
 stage.addEventListener("pointerup", upStage);
