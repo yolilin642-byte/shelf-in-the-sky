@@ -1,0 +1,13 @@
+{
+ "dir": "skies/ninth-wave/",
+ "v": 1791881698,
+ "label": "九级浪",
+ "small": "1850",
+ "credit": "Ivan Aivazovsky, The Ninth Wave, 1850",
+ "css": {
+  "base": "#dbc5aa",
+  "veil": "#eaddcd",
+  "tint": "219,197,170",
+  "glow": "232,218,201"
+ }
+}

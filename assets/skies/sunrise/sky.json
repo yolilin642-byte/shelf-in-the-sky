@@ -1,0 +1,19 @@
+{
+ "dir": "skies/sunrise/",
+ "v": 1791881701,
+ "label": "日出·印象",
+ "small": "1872",
+ "credit": "Claude Monet, Impression, Sunrise, 1872",
+ "css": {
+  "base": "#6d6f62",
+  "veil": "#42433b",
+  "tint": "109,111,98",
+  "glow": "49,50,44",
+  "ink": "#ecebe4",
+  "ink2": "#f2f0e8",
+  "soft": "#c9c7bd",
+  "mute": "#dddbd1",
+  "line": "236,234,226",
+  "hl": "14,16,26"
+ }
+}

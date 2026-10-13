@@ -75,12 +75,18 @@ Tap to flip it over and read the back; swipe to the next one; pull down to put i
 
 ## 换一片天 · Your own sky
 
+页面右边最上头那颗 **sky / 天**，点开能挑天：Constable 的云稿之外，仓库里还带了四片做好的示例（梵高《星夜》、艾瓦佐夫斯基《九级浪》、莫奈《日出·印象》、Boudin《特鲁维尔海滩》，都是公有领域）。挑过哪片会记住。
+Tap **sky** at the top of the right-hand column to pick a sky. Besides Constable, four ready-made public-domain examples are included (Van Gogh, Aivazovsky, Monet, Boudin). The choice is remembered.
+
+自己做一片：
+Make your own:
+
 ```
-python tools/sky.py my-sky.jpg --credit "J.M.W. Turner, 1839"
+python tools/sky.py my-sky.jpg --label 海边 --credit "J.M.W. Turner, 1839"
 ```
 
-给它一张图，它把图做成照片背后那片天，从同一张图上裁六团云飘在雾里，再照着图的颜色配底色；天暗的话，字会换成浅色、字边那圈光晕换成深色。刷新页面就换好了。
-Give it any picture: it becomes the sky behind the photos, six mist clouds are cut from the same picture, and the background tint follows its colours. On a dark sky the text turns light with a dark halo. Refresh the page.
+给它一张图，它把图做成照片背后那片天，从同一张图上裁六团云飘在雾里，再照着图的颜色配底色；天暗的话，字会换成浅色、字边那圈光晕换成深色。做好的会出现在「天」里，刷新页面就能挑。
+Give it any picture: it becomes the sky behind the photos, six mist clouds are cut from the same picture, and the background tint follows its colours. On a dark sky the text turns light with a dark halo. It appears in the sky picker after a refresh.
 
 - **挑几乎全是天的图。** 整张图从上到下都铺在背后，画的下半截要是有人、有房子、有海，底下那排按钮就压在上面看不清。这时只要上半截：`--top 0.5`。
   **Pick a picture that is mostly sky.** All of it sits behind the photos; if the lower half has people or houses, keep only the top: `--top 0.5`.
@@ -90,13 +96,14 @@ Give it any picture: it becomes the sky behind the photos, six mist clouds are c
   `--credit` goes in the small line at the bottom of the page. Check the picture's license before you use it.
 
 ```
-python tools/sky.py --list          # 换过哪些 / skies you've made
-python tools/sky.py --use my-sky    # 换回做过的某一片 / switch to one
-python tools/sky.py --default       # 换回 Constable / back to Constable
+python tools/sky.py --list          # 做过哪些 / skies you've made
+python tools/sky.py --use my-sky    # 打开页面先看到哪片 / which one the page starts with
+python tools/sky.py --default       # 先看到 Constable / start with Constable
+python tools/sky.py --remove boudin # 删掉一片（示例不想要也这样删） / delete one (the examples too)
 ```
 
-做好的天放在 `assets/skies/<名字>/`，`assets/sky.json` 记着现在用哪片；颜色不满意，直接改 `sky.json` 里 `css` 那几项。
-Skies live in `assets/skies/<name>/`; `assets/sky.json` says which one is in use. Edit its `css` block to fine-tune the colours.
+做好的天放在 `assets/skies/<名字>/`，`assets/sky.json` 记着清单和打开先看哪片；某片颜色不满意，改 `assets/skies/<名字>/sky.json` 里 `css` 那几项，再跑一次 `--use` 或 `--default` 让清单跟上。
+Skies live in `assets/skies/<name>/`; `assets/sky.json` holds the list and the starting sky. To fine-tune a sky's colours, edit the `css` block in its own `sky.json`, then run `--use` or `--default` again to refresh the list.
 
 ## 它是怎么活着的 · How it lives
 
@@ -111,7 +118,8 @@ node server/keeper.mjs        # 静态服务 + 有新照片自动重烤 / serve 
 ## 素材 · Credits
 
 - 天 sky：John Constable, *Cloud Study*, 1821（Google Art Project，经 Wikimedia Commons，公有领域 / public domain）。左右镜像接成一圈。
-- 云团 clouds (`assets/wisp*.webp`)：从同一张画上裁下来的 / cut from the same painting.（换了天以后，天和云团的出处是你自己那张 / once you swap the sky, sky and clouds credit your own picture.）
+- 云团 clouds (`assets/wisp*.webp`)：从同一张画上裁下来的 / cut from the same painting.
+- 示例天 example skies (`assets/skies/`)，天和云团都从各自那张画上做（Google Art Project 等，经 Wikimedia Commons，公有领域 / public domain）：Vincent van Gogh, *The Starry Night*, 1889；Ivan Aivazovsky, *The Ninth Wave*, 1850；Claude Monet, *Impression, Sunrise*, 1872；Eugène Boudin, *The Beach at Trouville*。自己做的天，出处写你那张 / skies you make credit your own picture.
 - 相片背面 photo backs：N.E. Lusher & Sun, Hamilton, Bermuda（Wikimedia Commons，公有领域）。相纸纹理是从这张背面的空白处裁的 / the paper texture is cut from its blank area.
 - 字体 font：IM FELL English Italic，Igino Marini，SIL Open Font License（`assets/OFL-IMFell.txt`）。中文用系统里的宋体 / Chinese text uses the system serif.
 - 示例照片 sample photos：Julia Margaret Cameron、Anna Atkins、Eugène Atget、Clarence H. White、Gustave Le Gray。都是公有领域或 CC0，每张的出处写在它背面 / all public domain or CC0, source on the back of each.

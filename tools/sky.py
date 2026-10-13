@@ -6,11 +6,16 @@
 #   python tools/sky.py my-sky.jpg --credit "Turner, 1839" 页面最底下那行小字写谁的天 / who painted it (bottom line of the page)
 #   python tools/sky.py my-sky.jpg --name sea              起个名字，默认用文件名 / a name; defaults to the file name
 #   python tools/sky.py my-sky.jpg --top 0.5               只要画的上半截 / keep only the top half of the picture
-#   python tools/sky.py --list                             换过哪些 / the skies you've made
-#   python tools/sky.py --use sea                          换回做过的某一片 / switch to one you've made
-#   python tools/sky.py --default                          换回 Constable / back to Constable
+#   python tools/sky.py my-sky.jpg --label 海边             页面上挑天时显示的名字，默认用 --name / the name shown in the sky picker
+#   python tools/sky.py --list                             做过哪些 / the skies you've made
+#   python tools/sky.py --use sea                          打开页面先看到哪片 / which one the page starts with
+#   python tools/sky.py --default                          先看到 Constable / start with Constable
+#   python tools/sky.py --remove sea                       删掉一片 / delete one
 #
-# 做好的放在 assets/skies/<名字>/，assets/sky.json 记着现在用的是哪片。
+# 做好的放在 assets/skies/<名字>/。做过的每一片都会出现在页面右边那颗「天」里，看的人点哪片换哪片（会记住）；
+# assets/sky.json 记着清单和打开时先看到哪片。
+# Every sky you make shows up under "sky" on the right of the page; visitors tap to switch (and it is remembered).
+# assets/sky.json holds the list and the one the page starts with.
 # 挑几乎全是天的图最好：整张图从上到下都会铺在照片背后，画的下半截要是有人、有房子、有海，底下那排按钮就压在上面看不清，
 # 这时加 --top 0.5 之类，只留上面那截天。横的图也比竖的好：页面把它左右镜像接成一圈，太窄的转一圈会重复好几回。
 # Pick a picture that is mostly sky: all of it, top to bottom, sits behind the photos, and people or houses in the lower half
@@ -18,7 +23,7 @@
 # 天太暗（夜空之类）会自动换成浅色的字、深色的光晕；不满意就改 assets/sky.json 里 css 那几项。
 #
 # 要装 Pillow 和 numpy：pip install pillow numpy
-import sys, os, re, json, time, argparse
+import sys, os, re, json, time, shutil, argparse
 from PIL import Image, ImageFilter
 import numpy as np
 
@@ -86,7 +91,7 @@ def wisp(patch, ar):
     out.putalpha(Image.fromarray(al))
     return out
 
-def make(src, name, credit, top=1.0):
+def make(src, name, credit, top=1.0, label=None):
     im = Image.open(src)
     im.load()
     im = im.convert("RGB")
@@ -107,12 +112,28 @@ def make(src, name, credit, top=1.0):
         y = min(max(0, y + (round(pw * .62) - ph) // 2), sky.height - ph)
         wisp(sky.crop((x, y, x + pw, y + ph)), WISP_AR[q]).save(os.path.join(d, "wisp%d.webp" % q), quality=80, method=4)
     dark, css = palette(sky)
-    cfg = {"dir": "skies/%s/" % name, "v": int(time.time()), "credit": credit, "css": css}   # v：同名重做时让浏览器别拿旧图 / so a remade sky isn't served from cache
+    yr = re.findall(r"\b(1[0-9]{3}|20[0-9]{2})\b", credit)
+    cfg = {"dir": "skies/%s/" % name, "v": int(time.time()), "label": label or name, "small": yr[-1] if yr else "",
+           "credit": credit, "css": css}   # v：同名重做时让浏览器别拿旧图 / so a remade sky isn't served from cache
     json.dump(cfg, open(os.path.join(d, "sky.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     return cfg, dark
 
+def made():
+    out = []
+    for n in os.listdir(SKIES) if os.path.isdir(SKIES) else []:
+        f = os.path.join(SKIES, n, "sky.json")
+        if os.path.exists(f): out.append(json.load(open(f, encoding="utf-8")))
+    return sorted(out, key=lambda c: c.get("v", 0))
+
 def use(cfg):
-    json.dump(cfg, open(CFG, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    # 打开时先看到哪片，加上做过的全部（页面上挑天那颗按这个清单摆） / the starting sky, plus every sky made (the picker lists these)
+    out = dict(cfg)
+    out["skies"] = made()
+    json.dump(out, open(CFG, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+
+def current():
+    try: return json.load(open(CFG, encoding="utf-8"))
+    except Exception: return dict(DEFAULT)
 
 def main():
     ap = argparse.ArgumentParser(description="换天 / swap the sky")
@@ -120,21 +141,27 @@ def main():
     ap.add_argument("--name")
     ap.add_argument("--credit")
     ap.add_argument("--top", type=float, default=1.0)
+    ap.add_argument("--label")
     ap.add_argument("--use")
+    ap.add_argument("--remove")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--default", action="store_true")
     a = ap.parse_args()
     if a.default:
-        use(DEFAULT); print("换回 Constable 了 / back to Constable"); return
+        use(DEFAULT); print("打开先看到 Constable / starts with Constable"); return
     if a.list:
-        cur = json.load(open(CFG, encoding="utf-8")).get("dir", "") if os.path.exists(CFG) else ""
+        cur = current().get("dir", "")
         print(("* " if not cur else "  ") + "(default) " + DEFAULT["credit"])
-        for n in sorted(os.listdir(SKIES)) if os.path.isdir(SKIES) else []:
-            f = os.path.join(SKIES, n, "sky.json")
-            if os.path.exists(f):
-                c = json.load(open(f, encoding="utf-8"))
-                print(("* " if c["dir"] == cur else "  ") + n + "  " + c.get("credit", ""))
+        for c in made():
+            print(("* " if c["dir"] == cur else "  ") + c["dir"].split("/")[1] + "  " + c.get("label", "") + "  " + c.get("credit", ""))
         return
+    if a.remove:
+        d = os.path.join(SKIES, a.remove)
+        if not os.path.isfile(os.path.join(d, "sky.json")): sys.exit("没有叫 %s 的天，先 --list 看看 / no sky called %s, try --list" % (a.remove, a.remove))
+        shutil.rmtree(d)
+        cur = current()
+        use(DEFAULT if cur.get("dir") == "skies/%s/" % a.remove else {k: v for k, v in cur.items() if k != "skies"})
+        print("删掉 %s 了 / removed %s" % (a.remove, a.remove)); return
     if a.use:
         f = os.path.join(SKIES, a.use, "sky.json")
         if not os.path.exists(f): sys.exit("没有叫 %s 的天，先 --list 看看 / no sky called %s, try --list" % (a.use, a.use))
@@ -143,10 +170,10 @@ def main():
     name = a.name or os.path.splitext(os.path.basename(a.image))[0]
     name = re.sub(r"[^a-z0-9_-]+", "-", name.lower()).strip("-") or "sky"
     if not 0.1 <= a.top <= 1: sys.exit("--top 写 0.1 到 1 之间 / --top takes 0.1 to 1")
-    cfg, dark = make(a.image, name, a.credit or os.path.splitext(os.path.basename(a.image))[0], a.top)
+    cfg, dark = make(a.image, name, a.credit or os.path.splitext(os.path.basename(a.image))[0], a.top, a.label)
     use(cfg)
     print("换好了 / done：assets/skies/%s/" % name + ("（暗的天，字换成浅色 / dark sky: light text）" if dark else ""))
-    print("刷新页面就能看见。换回来：python tools/sky.py --default / refresh the page; to go back: --default")
+    print("刷新页面就能看见，右边「天」里也能挑。打开先看 Constable：--default / refresh; it's also in the sky picker. Start with Constable: --default")
 
 if __name__ == "__main__":
     main()

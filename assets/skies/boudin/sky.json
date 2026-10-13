@@ -1,0 +1,13 @@
+{
+ "dir": "skies/boudin/",
+ "v": 1791881706,
+ "label": "特鲁维尔",
+ "small": "Boudin",
+ "credit": "Eugène Boudin, The Beach at Trouville",
+ "css": {
+  "base": "#ccccc8",
+  "veil": "#e1e1df",
+  "tint": "204,204,200",
+  "glow": "222,223,220"
+ }
+}

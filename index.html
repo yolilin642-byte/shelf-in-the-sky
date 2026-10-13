@@ -290,8 +290,13 @@ function skySize() {
   sky.style.width = Math.ceil(cssW) + "px";
   SKY.cv.style.width = cssW.toFixed(1) + "px";
 }
-const SKYDEF = { k: "", zh: "Constable", en: "1821", credit: "John Constable, Cloud Study, 1821" };
-const SKYLIST = fetch(A + "sky.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : {}).catch(() => ({})).then((c) => c.dir ? [Object.assign({}, c, { k: c.dir, zh: "", en: "" })] : [SKYDEF]);
+const SKYDEF = { k: "", zh: "\u4E91\u7A3F", en: "1821", credit: "John Constable, Cloud Study, 1821" };
+const SKYLIST = fetch(A + "sky.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : {}).catch(() => ({})).then((c) => {
+  const ks = (c.skies || []).slice();
+  if (c.dir && !ks.some((x) => x.dir === c.dir)) ks.push(c);
+  if (localStorage.getItem("shelfSky") == null && c.dir) SKYK = c.dir;
+  return [SKYDEF, ...ks.map((x) => Object.assign({}, x, { k: x.dir, zh: x.label || x.dir, en: x.small || "" }))];
+});
 const skyFile = (s) => A + (s.dir || "") + "sky.webp" + (s.v ? "?v=" + s.v : "");
 const wispFile = (s, q) => A + (s.dir || "") + "wisp" + q + ".webp" + (s.v ? "?v=" + s.v : "");
 let SKIES = [SKYDEF], SKYK = localStorage.getItem("shelfSky") || "";
@@ -1330,7 +1335,15 @@ function fill(i) {
   card.classList.toggle("bl", !!PH[i]?.el.classList.contains("bl"));
   img.offsetWidth;
   img.style.transition = "";
-  img.src = thumb(s.file);
+  const want = thumb(s.file);
+  if (img.getAttribute("src") !== want) {
+    img.style.visibility = "hidden";
+    img.onload = img.onerror = () => {
+      img.style.visibility = "";
+    };
+    img.src = want;
+    if (img.complete && img.naturalWidth) img.style.visibility = "";
+  }
   clearTimeout(fillT);
   fillT = setTimeout(() => {
     if (CUR !== i || !lb.classList.contains("on")) return;

@@ -1,0 +1,19 @@
+{
+ "dir": "skies/starry/",
+ "v": 1791881695,
+ "label": "星夜",
+ "small": "1889",
+ "credit": "Vincent van Gogh, The Starry Night, 1889",
+ "css": {
+  "base": "#536885",
+  "veil": "#323f50",
+  "tint": "83,104,133",
+  "glow": "37,47,60",
+  "ink": "#ecebe4",
+  "ink2": "#f2f0e8",
+  "soft": "#c9c7bd",
+  "mute": "#dddbd1",
+  "line": "236,234,226",
+  "hl": "14,16,26"
+ }
+}
