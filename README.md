@@ -1,5 +1,7 @@
 # Shelf in the Sky · 云里的搁架
 
+**在手机上打开就能走进去 · Try it on your phone：https://yolilin642-byte.github.io/shelf-in-the-sky/**
+
 照片悬在一片 1821 年的云里。你站在中间，往前走，照片从身边擦过去；转头，身后也有。最新的在最前面，越往里走越旧。
 
 Photos hang in a cloud study John Constable painted in 1821. You stand inside it and walk; photos drift past you on every side, newest first, older the further in you go.
