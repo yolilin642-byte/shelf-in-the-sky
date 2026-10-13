@@ -73,6 +73,31 @@ Tap to flip it over and read the back; swipe to the next one; pull down to put i
 > 放到网上之前想清楚：`photos/` 里的原图和 `.txt` 会原样公开。
 > Everything in `photos/` — originals and notes — is public once you publish it.
 
+## 换一片天 · Your own sky
+
+```
+python tools/sky.py my-sky.jpg --credit "J.M.W. Turner, 1839"
+```
+
+给它一张图，它把图做成照片背后那片天，从同一张图上裁六团云飘在雾里，再照着图的颜色配底色；天暗的话，字会换成浅色、字边那圈光晕换成深色。刷新页面就换好了。
+Give it any picture: it becomes the sky behind the photos, six mist clouds are cut from the same picture, and the background tint follows its colours. On a dark sky the text turns light with a dark halo. Refresh the page.
+
+- **挑几乎全是天的图。** 整张图从上到下都铺在背后，画的下半截要是有人、有房子、有海，底下那排按钮就压在上面看不清。这时只要上半截：`--top 0.5`。
+  **Pick a picture that is mostly sky.** All of it sits behind the photos; if the lower half has people or houses, keep only the top: `--top 0.5`.
+- 横的图比竖的好：页面把它左右镜像接成一圈，竖的转一圈会重复好几回。
+  Wide beats tall: it is mirrored into a full circle.
+- `--credit` 写上画是谁的，页面最底下那行小字会跟着换。用别人的画先看清它的许可。
+  `--credit` goes in the small line at the bottom of the page. Check the picture's license before you use it.
+
+```
+python tools/sky.py --list          # 换过哪些 / skies you've made
+python tools/sky.py --use my-sky    # 换回做过的某一片 / switch to one
+python tools/sky.py --default       # 换回 Constable / back to Constable
+```
+
+做好的天放在 `assets/skies/<名字>/`，`assets/sky.json` 记着现在用哪片；颜色不满意，直接改 `sky.json` 里 `css` 那几项。
+Skies live in `assets/skies/<name>/`; `assets/sky.json` says which one is in use. Edit its `css` block to fine-tune the colours.
+
 ## 它是怎么活着的 · How it lives
 
 页面只是壳。我们家那个搁架，照片是 AI 自己挑着放上去的，背面写着为什么留，屋里没人的时候还会自己掉下来一张。整套怎么转、后台代码怎么接，写在 [docs/how-it-lives.md](docs/how-it-lives.md)。
@@ -86,7 +111,7 @@ node server/keeper.mjs        # 静态服务 + 有新照片自动重烤 / serve 
 ## 素材 · Credits
 
 - 天 sky：John Constable, *Cloud Study*, 1821（Google Art Project，经 Wikimedia Commons，公有领域 / public domain）。左右镜像接成一圈。
-- 云团 clouds (`assets/wisp*.webp`)：从同一张画上裁下来的 / cut from the same painting.
+- 云团 clouds (`assets/wisp*.webp`)：从同一张画上裁下来的 / cut from the same painting.（换了天以后，天和云团的出处是你自己那张 / once you swap the sky, sky and clouds credit your own picture.）
 - 相片背面 photo backs：N.E. Lusher & Sun, Hamilton, Bermuda（Wikimedia Commons，公有领域）。相纸纹理是从这张背面的空白处裁的 / the paper texture is cut from its blank area.
 - 字体 font：IM FELL English Italic，Igino Marini，SIL Open Font License（`assets/OFL-IMFell.txt`）。中文用系统里的宋体 / Chinese text uses the system serif.
 - 示例照片 sample photos：Julia Margaret Cameron、Anna Atkins、Eugène Atget、Clarence H. White、Gustave Le Gray。都是公有领域或 CC0，每张的出处写在它背面 / all public domain or CC0, source on the back of each.
