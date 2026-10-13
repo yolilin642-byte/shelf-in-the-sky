@@ -60,6 +60,21 @@ body:not([data-mode=sky]) #fog{opacity:0;pointer-events:none}
   text-shadow:0 0 2px rgb(var(--hl)),0 0 5px rgb(var(--hl)),0 0 10px rgb(var(--hl)),0 0 18px rgb(var(--hl)),0 0 28px rgba(var(--hl),.9)}
 #blind i{display:block;font:italic 12px/1 "IM Fell",serif;color:var(--soft)}
 #blind b{display:block;margin-top:5px;font-weight:400;font-size:12px;line-height:1;color:var(--ink)}
+#skies{position:fixed;right:2px;top:calc(50% - 112px);transform:translateY(-100%);z-index:23;width:44px}
+#skies .hd{display:block;width:44px;text-align:center;padding:6px 0;
+  text-shadow:0 0 2px rgb(var(--hl)),0 0 5px rgb(var(--hl)),0 0 10px rgb(var(--hl)),0 0 18px rgb(var(--hl)),0 0 28px rgba(var(--hl),.9)}
+#skies .hd i{display:block;font:italic 12px/1 "IM Fell",serif;color:var(--soft)}
+#skies .hd b{display:block;margin-top:5px;font-weight:400;font-size:12px;line-height:1;color:var(--ink)}
+#skies .ls{position:absolute;right:42px;top:-2px;display:none;flex-direction:column;align-items:flex-end}
+#skies.open .ls{display:flex}
+#skies .ls::before{content:"";position:absolute;left:-46px;right:-40px;top:-50px;bottom:-50px;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(var(--glow),.92),rgba(var(--glow),.75) 55%,rgba(var(--glow),0))}
+#skies .ls button{position:relative;padding:5px 12px 5px 8px;font-size:12.5px;line-height:1.15;letter-spacing:.12em;color:var(--mute);opacity:.6;white-space:nowrap;transition:opacity .3s,color .3s;
+  text-shadow:0 0 2px rgb(var(--hl)),0 0 5px rgb(var(--hl)),0 0 10px rgb(var(--hl)),0 0 18px rgb(var(--hl)),0 0 28px rgba(var(--hl),.9)}
+#skies .ls button u{text-decoration:none;font:italic 10.5px/1 "IM Fell",serif;letter-spacing:0;margin-left:4px;color:var(--soft)}
+#skies .ls button.on{opacity:1;color:var(--ink)}
+#skies .ls button.on::after{content:"";position:absolute;right:4px;top:50%;width:4px;height:4px;margin-top:-2px;background:var(--ink);transform:rotate(45deg)}
+#sky{transition:opacity .35s}
 #tags{position:fixed;left:2px;top:50%;transform:translateY(-50%);z-index:22;display:flex;flex-direction:column;align-items:flex-start;pointer-events:none}
 #tags::before{content:"";position:absolute;left:-40px;right:-46px;top:-60px;bottom:-60px;z-index:-1;pointer-events:none;opacity:0;transition:opacity .35s;
   background:radial-gradient(closest-side,rgba(var(--glow),.92),rgba(var(--glow),.75) 55%,rgba(var(--glow),0))}
@@ -121,6 +136,7 @@ body:not([data-mode=sky]) #fog{opacity:0;pointer-events:none}
 <button id="home" type="button"><i>the first one</i><b>飞回最近</b></button>
 <div id="fog"><i>mist</i><div class="tr"><span class="kn"></span></div><b>雾</b></div>
 <button id="blind" type="button"><i>veil</i><b>蒙上</b></button>
+<div id="skies"><button class="hd" type="button"><i>sky</i><b>天</b></button><div class="ls"></div></div>
 <div id="tags"></div>
 <div id="modes"><button type="button" data-m="sky" class="on"><i>in the sky</i><b>天上</b></button><s></s><button type="button" data-m="flat"><i>laid flat</i><b>拍平</b></button><s></s><button type="button" data-m="pile"><i>in a pile</i><b>一摞</b></button></div>
 <div class="credit" id="credit"></div>
@@ -128,11 +144,6 @@ body:not([data-mode=sky]) #fog{opacity:0;pointer-events:none}
 <div class="tip" id="tip"></div>
 <script>
 const A = "assets/";
-const SKYCFG = fetch(A + "sky.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : {}).catch(() => ({})).then((c) => {
-  const st = document.documentElement.style;
-  for (const k in c.css || {}) st.setProperty("--" + k, c.css[k]);
-  return c;
-});
 const base = (f) => String(f).replace(/\.[^.]+$/, "");
 const thumb = (f) => "baked/t-" + encodeURIComponent(base(f)) + ".webp";
 const baked = (f, k) => "baked/" + k + "-" + encodeURIComponent(base(f)) + ".webp";
@@ -279,19 +290,44 @@ function skySize() {
   sky.style.width = Math.ceil(cssW) + "px";
   SKY.cv.style.width = cssW.toFixed(1) + "px";
 }
-(function() {
+const SKYDEF = { k: "", zh: "Constable", en: "1821", credit: "John Constable, Cloud Study, 1821" };
+const SKYLIST = fetch(A + "sky.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : {}).catch(() => ({})).then((c) => c.dir ? [Object.assign({}, c, { k: c.dir, zh: "", en: "" })] : [SKYDEF]);
+const skyFile = (s) => A + (s.dir || "") + "sky.webp" + (s.v ? "?v=" + s.v : "");
+const wispFile = (s, q) => A + (s.dir || "") + "wisp" + q + ".webp" + (s.v ? "?v=" + s.v : "");
+let SKIES = [SKYDEF], SKYK = localStorage.getItem("shelfSky") || "";
+const skyCur = () => SKIES.find((s) => s.k === SKYK) || SKIES[0];
+const SKYVARS = ["base", "veil", "tint", "glow", "ink", "ink2", "soft", "mute", "line", "hl"];
+function skyLook(s) {
+  const st = document.documentElement.style;
+  for (const v of SKYVARS) st.removeProperty("--" + v);
+  for (const v in s.css || {}) st.setProperty("--" + v, s.css[v]);
+  $("#credit").textContent = "sky: " + s.credit + " \xB7 backs: N.E. Lusher & Sun, Bermuda";
+  const t = s.tint || s.css && s.css.base;
+  if (!t) return;
+}
+const skyGet = (s) => new Promise((r) => {
   const im = new Image();
-  im.onload = () => {
-    const cw = Math.min(im.naturalWidth, 1750), y0 = Math.round(im.naturalHeight * 0.03), ch = im.naturalHeight - y0;
-    SKY.src = { im, cw, y0, ch };
-    SKY.iw = cw * 2;
-    SKY.ih = ch;
-    skySize();
-  };
-  SKYCFG.then((c) => {
-    im.src = A + (c.dir || "") + "sky.webp" + (c.v ? "?v=" + c.v : "");
+  im.onload = () => r(im);
+  im.onerror = () => r(null);
+  im.src = skyFile(s);
+});
+function skyPut(im) {
+  const cw = Math.min(im.naturalWidth, 1750), y0 = Math.round(im.naturalHeight * 0.03), ch = im.naturalHeight - y0;
+  SKY.src = { im, cw, y0, ch };
+  SKY.iw = cw * 2;
+  SKY.ih = ch;
+  if (SKY.cv) SKY.cv.width = 0;
+  skySize();
+}
+SKYLIST.then((l) => {
+  SKIES = l;
+  const s = skyCur();
+  skyLook(s);
+  skyGet(s).then((im) => {
+    if (im && skyCur() === s) skyPut(im);
   });
-})();
+  renderSkies();
+});
 skySize();
 const P0 = () => cl(innerHeight * 0.64, 420, 700), GAP = 82, MGAP = 440, FAR = 3200;
 const PADT = () => nav.getBoundingClientRect().bottom + 30, PADB = () => innerHeight - modesEl.getBoundingClientRect().top + 10;
@@ -369,7 +405,7 @@ function build(list) {
       wi.style.marginLeft = -ww / 2 + "px";
       wi.style.marginTop = -ww * 0.3 + "px";
       world.appendChild(wi);
-      WI.push({ el: wi, h7, ww, x: (hs(s.file, 10) - 0.5) * 520, y: (hs(s.file, 11) - 0.5) * 560, z: wz, ro: hs(s.file, 13) < 0.5 ? 180 : 0 });
+      WI.push({ el: wi, h7, ww, q, x: (hs(s.file, 10) - 0.5) * 520, y: (hs(s.file, 11) - 0.5) * 560, z: wz, ro: hs(s.file, 13) < 0.5 ? 180 : 0 });
     }
     z -= GAP * (0.75 + hs(s.file, 6) * 0.5);
   });
@@ -388,18 +424,19 @@ function build(list) {
   C = -760;
   intro = performance.now();
 }
-const WISP = [];
+const WISP = {};
 function wisp(c, q, ww) {
-  const w = WISP[q] || (WISP[q] = new Promise((r) => {
+  const k = SKYK, key = k + "/" + q;
+  const w = WISP[key] || (WISP[key] = new Promise((r) => {
     const im = new Image();
     im.onload = () => r(im);
     im.onerror = () => r(null);
-    SKYCFG.then((c2) => {
-      im.src = A + (c2.dir || "") + "wisp" + q + ".webp" + (c2.v ? "?v=" + c2.v : "");
+    SKYLIST.then(() => {
+      im.src = wispFile(skyCur(), q);
     });
   }));
   w.then((im) => {
-    if (!im) return;
+    if (!im || k !== SKYK) return;
     c.width = im.naturalWidth;
     c.height = im.naturalHeight;
     c.style.height = (ww * im.naturalHeight / im.naturalWidth).toFixed(1) + "px";
@@ -1186,6 +1223,53 @@ function setTag(t) {
     tPitch = 0;
   }
 }
+const skiesEl = $("#skies");
+function renderSkies() {
+  if (SKIES.length < 2) {
+    skiesEl.style.display = "none";
+    return;
+  }
+  skiesEl.style.display = "";
+  const cur = skyCur();
+  skiesEl.querySelector(".ls").innerHTML = SKIES.map((s) => `<button type="button" data-k="${s.k}"${s === cur ? ' class="on"' : ""}>${s.zh}<u>${s.en}</u></button>`).join("");
+  skiesEl.querySelectorAll(".ls button").forEach((b) => b.onclick = () => {
+    skiesEl.classList.remove("open");
+    setSky(b.dataset.k);
+  });
+}
+skiesEl.querySelector(".hd").onclick = () => skiesEl.classList.toggle("open");
+function setSky(k) {
+  if (k === SKYK) return;
+  const prev = SKYK;
+  SKYK = k;
+  const s = skyCur();
+  renderSkies();
+  buzz();
+  sky.style.opacity = "0";
+  Promise.all([skyGet(s), new Promise((r) => setTimeout(r, 350))]).then(([im]) => {
+    if (skyCur() !== s) return;
+    if (!im) {
+      SKYK = prev;
+      renderSkies();
+      sky.style.opacity = "1";
+      tip.textContent = "\u8FD9\u7247\u5929\u6CA1\u62C9\u5230\uFF0C\u8FC7\u4E00\u4F1A\u513F\u518D\u6362";
+      tip.dataset.k = "skyMiss";
+      tip.classList.add("on");
+      setTimeout(() => {
+        if (tip.dataset.k === "skyMiss") tip.classList.remove("on");
+      }, 2500);
+      return;
+    }
+    try {
+      localStorage.setItem("shelfSky", k);
+    } catch {
+    }
+    skyPut(im);
+    skyLook(s);
+    for (const w of WI) wisp(w.el, w.q, w.ww);
+    sky.style.opacity = "1";
+  });
+}
 stage.addEventListener("pointerup", upStage);
 stage.addEventListener("pointercancel", (e) => {
   sp.delete(e.pointerId);
@@ -1532,9 +1616,6 @@ addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") go(-1);
   if (e.key === " ") flipCard();
   if (e.key === "Escape") closeLb();
-});
-SKYCFG.then((c) => {
-  $("#credit").textContent = "sky: " + (c.credit || "John Constable, Cloud Study, 1821") + " \xB7 backs: N.E. Lusher & Sun, Bermuda";
 });
 let LAST = "";
 async function load(first) {
