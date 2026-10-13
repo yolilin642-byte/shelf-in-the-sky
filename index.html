@@ -1,0 +1,1553 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Shelf in the Sky · 云里的搁架</title>
+<link rel="icon" href="data:,">
+<style>
+@font-face{font-family:"IM Fell";font-style:italic;src:url(assets/imfell-400i.woff2) format("woff2")}
+:root{--ink:#363b48;--soft:#5d6371;--hz:#d6d8d7;--st:env(safe-area-inset-top,0px);--db:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#cfd6dc;color:var(--ink);font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#sky{position:fixed;left:0;top:0;width:100vw;height:150vh;background:#cfd6dc;will-change:transform;transform-origin:0 0}
+#sky canvas{position:absolute;left:0;top:0;display:block;height:100%;will-change:transform;pointer-events:none}
+#veil{position:fixed;inset:0;background:#e6e8e6;opacity:0;transition:opacity .9s;pointer-events:none}
+body[data-mode=flat] #veil{opacity:.3}
+#stage{position:fixed;inset:0;overflow:hidden;perspective-origin:50% 46%;touch-action:none}
+#cam{position:absolute;left:50%;top:46%;width:0;height:0;transform-style:preserve-3d;will-change:transform}
+#world{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d}
+.ph{position:absolute;display:block;will-change:transform,opacity;-webkit-user-drag:none}
+.card.slip .fp{--rim:none}
+body[data-mode=flat] #stage{-webkit-mask:linear-gradient(transparent 0,#000 calc(var(--st) + 88px),#000 calc(100% - var(--db) - 96px),transparent calc(100% - var(--db) - 18px));mask:linear-gradient(transparent 0,#000 calc(var(--st) + 88px),#000 calc(100% - var(--db) - 96px),transparent calc(100% - var(--db) - 18px))}
+.wi{position:absolute;pointer-events:none;will-change:transform,opacity}
+.mo{position:absolute;width:0;height:0;pointer-events:none;will-change:transform,opacity}
+.mo div{position:absolute;left:-200px;width:400px;top:-48px;text-align:center;white-space:nowrap}
+.mo b{display:block;font:italic 62px/1 "IM Fell",serif;color:#343844;letter-spacing:.01em}
+.mo span{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px;font-size:12px;letter-spacing:.5em;color:#4f5462}
+.mo span::before,.mo span::after{content:"";width:30px;height:0;border-top:.8px solid rgba(52,56,68,.45)}
+body:not([data-mode=sky]) .wi,body:not([data-mode=sky]) .mo{visibility:hidden}
+body.lbon .wi,body.lbon .mo{visibility:hidden}
+.mh{position:absolute;width:260px;height:0;margin-left:-130px;text-align:center;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s;pointer-events:none;
+  text-shadow:0 0 12px #fff,0 0 4px #fff,0 0 2px #fff}
+.mh i{display:block;margin-top:-26px;font:italic 15px/1 "IM Fell",serif;color:var(--soft);letter-spacing:.04em}
+.mh b{display:block;margin-top:5px;font-weight:400;font-size:17px;line-height:1;letter-spacing:.5em;text-indent:.5em;color:var(--ink)}
+body[data-mode=flat] .mh.on{opacity:1;visibility:visible;transition:opacity .7s .55s,visibility 0s}
+#nav{position:fixed;right:6px;left:6px;justify-content:flex-end;overflow-x:auto;scrollbar-width:none;top:calc(var(--st) + 10px);z-index:20;display:flex}
+#nav button{font-size:12.5px;letter-spacing:.12em;color:#4f5462;padding:6px 7px;opacity:.6;transition:opacity .3s,color .3s;text-shadow:0 0 2px #fff,0 0 6px #fff,0 0 14px #fff,0 0 24px rgba(255,255,255,.9)}
+#nav::-webkit-scrollbar{display:none}
+#nav.num button{letter-spacing:0;padding:6px 5px;flex:none}
+#nav button.on{opacity:1;color:var(--ink)}
+#modes{position:fixed;left:50%;bottom:calc(var(--db) + 18px);transform:translateX(-50%);z-index:21;display:flex;align-items:flex-end;text-shadow:0 0 2px #fff,0 0 5px #fff,0 0 10px #fff,0 0 18px #fff,0 0 28px rgba(255,255,255,.9)}
+#modes button{padding:6px 11px;text-align:center;opacity:.55;transition:opacity .35s;text-shadow:0 0 2px #fff,0 0 5px #fff,0 0 10px #fff,0 0 18px #fff,0 0 28px rgba(255,255,255,.9)}
+#modes button.on{opacity:1}
+#modes i{display:block;font:italic 13px/1.3 "IM Fell",serif;color:var(--soft);white-space:nowrap}
+#modes b{display:block;margin-top:3px;font-weight:400;font-size:13px;letter-spacing:.4em;text-indent:.4em;white-space:nowrap}
+#modes s{display:block;width:3px;height:3px;border-radius:50%;background:var(--soft);opacity:.45;margin:0 1px 13px}
+#fog{position:fixed;right:2px;top:50%;transform:translateY(-50%);z-index:22;width:44px;padding:8px 0;display:flex;flex-direction:column;align-items:center;touch-action:none;
+  text-shadow:0 0 12px #fff,0 0 4px #fff,0 0 2px #fff;transition:opacity .4s}
+#fog i{font:italic 12px/1 "IM Fell",serif;color:var(--soft)}
+#fog b{font-weight:400;font-size:12px;line-height:1;color:var(--ink)}
+#fog .tr{position:relative;width:28px;height:150px;margin:9px 0}
+#fog .tr::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:0;border-left:.8px solid rgba(54,59,72,.42)}
+#fog .kn{position:absolute;left:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:url(assets/paper.webp) #f8f3e8;box-shadow:0 0 0 .8px rgba(112,94,66,.6)}
+body:not([data-mode=sky]) #fog{opacity:0;pointer-events:none}
+.card .f img{clip-path:inset(0);transition:filter .7s cubic-bezier(.3,.6,.3,1)}
+.card.bl .f img{filter:blur(22px)}
+#blind{position:fixed;right:2px;top:calc(50% + 122px);z-index:22;width:44px;text-align:center;padding:6px 0;
+  text-shadow:0 0 2px #fff,0 0 5px #fff,0 0 10px #fff,0 0 18px #fff,0 0 28px rgba(255,255,255,.9)}
+#blind i{display:block;font:italic 12px/1 "IM Fell",serif;color:var(--soft)}
+#blind b{display:block;margin-top:5px;font-weight:400;font-size:12px;line-height:1;color:var(--ink)}
+#tags{position:fixed;left:2px;top:50%;transform:translateY(-50%);z-index:22;display:flex;flex-direction:column;align-items:flex-start;pointer-events:none}
+#tags::before{content:"";position:absolute;left:-40px;right:-46px;top:-60px;bottom:-60px;z-index:-1;pointer-events:none;opacity:0;transition:opacity .35s;
+  background:radial-gradient(closest-side,rgba(236,239,238,.92),rgba(236,239,238,.75) 55%,rgba(236,239,238,0))}
+#tags.open::before{opacity:1}
+#tags i{pointer-events:auto;font:italic 12px/1 "IM Fell",serif;color:var(--soft);padding:6px 10px 5px 12px;text-shadow:0 0 12px #fff,0 0 4px #fff,0 0 2px #fff}
+#tags i::after{content:" ›";font-style:normal;opacity:.7}
+#tags.open i::after{content:" ‹"}
+#tags button{display:none;pointer-events:auto;position:relative;padding:5px 8px 5px 12px;font-size:12.5px;line-height:1.15;letter-spacing:.12em;color:#4f5462;opacity:.55;white-space:nowrap;transition:opacity .3s,color .3s;
+  text-shadow:0 0 2px #fff,0 0 5px #fff,0 0 10px #fff,0 0 18px #fff,0 0 28px rgba(255,255,255,.9)}
+#tags button u{text-decoration:none;font:italic 10.5px/1 "IM Fell",serif;letter-spacing:0;margin-left:3px;color:var(--soft)}
+#tags button.on{opacity:1;color:var(--ink)}
+#tags button.on,#tags.open button{display:block}
+#tags button.on::before{content:"";position:absolute;left:4px;top:50%;width:4px;height:4px;margin-top:-2px;background:var(--ink);transform:rotate(45deg)}
+#home{position:fixed;left:50%;bottom:calc(var(--db) + 92px);transform:translate(-50%,10px);z-index:21;opacity:0;pointer-events:none;
+  transition:opacity .6s,transform .6s;text-align:center;color:var(--ink);text-shadow:0 0 14px #fff,0 0 4px #fff}
+#home.on{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+#home i{display:block;font:italic 15px/1.4 "IM Fell",serif;color:var(--soft)}
+#home b{display:block;margin-top:6px;font-weight:400;font-size:13px;letter-spacing:.4em;text-indent:.4em;padding:6px 10px}
+.tip{position:fixed;left:0;right:0;top:calc(var(--st) + 54px);text-align:center;font-size:12px;letter-spacing:.3em;text-indent:.3em;
+  color:var(--soft);text-shadow:0 0 10px #fff,0 0 3px #fff;pointer-events:none;opacity:0;transition:opacity .6s;z-index:45}
+.tip.on{opacity:.9}
+#lb::before{content:"";position:absolute;inset:0;background:rgba(208,216,224,.28);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);opacity:var(--bd,1)}
+#lb{position:fixed;inset:0;z-index:40;opacity:0;pointer-events:none;transition:opacity .45s;touch-action:none}
+#lb.on{opacity:1;pointer-events:auto}
+#lb,#lb img,.ph{-webkit-user-select:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none}
+.hold{position:absolute;left:50%;top:47%;will-change:transform}
+.zoom{will-change:transform}
+.lift{perspective:1400px}
+.card{position:relative;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,.7,.2,1)}
+.card.flip{transform:rotateY(180deg)}
+.card .f,.card .b{position:absolute;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.card .f{inset:-14px;box-shadow:0 16px 24px -6px rgba(30,36,50,.3)}
+.card .fp{position:absolute;inset:0;padding:14px;background:var(--rim) 0 0/100% 100% no-repeat,url(assets/paper.webp) #f8f3e8;
+  -webkit-mask:var(--dk) 0 0/100% 100% no-repeat;mask:var(--dk) 0 0/100% 100% no-repeat}
+.card .im{width:100%;height:100%;box-shadow:0 0 0 .7px rgba(70,60,40,.2)}
+.card .f img{width:100%;height:100%;object-fit:contain;display:block;background:#f8f3e8}
+.card .b{left:-14px;right:-14px;top:50%;transform:translateY(-50%) rotateY(180deg);box-shadow:0 16px 24px -6px rgba(30,36,50,.3);display:flex}
+.card .bp{flex:1;display:flex;flex-direction:column;min-height:calc(var(--ch) + 28px);max-height:min(78vh,calc(106vh - var(--db) * 2 - var(--st) - 24px));
+  background:var(--rim) 0 0/100% 100% no-repeat,url(assets/back-p.webp) center/cover no-repeat #f4eee2;padding:30px 28px 24px;
+  -webkit-mask:var(--dk) 0 0/100% 100% no-repeat;mask:var(--dk) 0 0/100% 100% no-repeat}
+.card .b .t{flex:0 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:none;scrollbar-width:none;padding-bottom:6px}
+.card .b .t::-webkit-scrollbar{display:none}
+.card .b .t.more{-webkit-mask:linear-gradient(#000 calc(100% - 46px),transparent);mask:linear-gradient(#000 calc(100% - 46px),transparent)}
+.card .b .t b{font-weight:600;color:#1d1a13}
+.card .b .d{font:italic 21px/1 "IM Fell",serif;color:#6b6250;text-shadow:0 0 6px rgba(244,238,226,.95)}
+.card .b .d i{font-style:normal;font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;font-size:12px;letter-spacing:.3em;margin-left:10px;color:#8b8370}
+.card.wide .bp{background-image:var(--rim),url(assets/back-l.webp)}
+.card .b .t{margin-top:16px;font-size:14.5px;line-height:1.9;letter-spacing:.04em;color:#2f2b22;white-space:pre-wrap;text-shadow:0 0 6px rgba(244,238,226,.9),0 0 2px rgba(244,238,226,.9)}
+.card.slip .fp{box-shadow:inset 0 0 0 1px rgba(112,94,66,.35)}
+.card.slip .bp{background:url(assets/paper.webp) #f6f1e6;box-shadow:inset 0 0 0 1px rgba(112,94,66,.35)}
+.credit{position:fixed;left:0;right:0;bottom:calc(var(--db) + 4px);text-align:center;font:italic 10px/1 "IM Fell",serif;color:var(--soft);opacity:.55;z-index:20;pointer-events:none;text-shadow:0 0 8px #fff}
+</style>
+</head>
+<body data-mode="sky">
+<nav id="nav"></nav>
+<div id="sky"></div>
+<div id="veil"></div>
+<div id="stage"><div id="cam"><div id="world"></div></div></div>
+<button id="home" type="button"><i>the first one</i><b>飞回最近</b></button>
+<div id="fog"><i>mist</i><div class="tr"><span class="kn"></span></div><b>雾</b></div>
+<button id="blind" type="button"><i>veil</i><b>蒙上</b></button>
+<div id="tags"></div>
+<div id="modes"><button type="button" data-m="sky" class="on"><i>in the sky</i><b>天上</b></button><s></s><button type="button" data-m="flat"><i>laid flat</i><b>拍平</b></button><s></s><button type="button" data-m="pile"><i>in a pile</i><b>一摞</b></button></div>
+<div class="credit" id="credit"></div>
+<div id="lb"><div class="hold"><div class="zoom"><div class="lift"><div class="card"><div class="f"><div class="fp"><div class="im"><img alt="" draggable="false"></div></div></div><div class="b"><div class="bp"><div class="d"></div><div class="t"></div></div></div></div></div></div></div></div>
+<div class="tip" id="tip"></div>
+<script>
+const A = "assets/";
+const base = (f) => String(f).replace(/\.[^.]+$/, "");
+const thumb = (f) => "baked/t-" + encodeURIComponent(base(f)) + ".webp";
+const baked = (f, k) => "baked/" + k + "-" + encodeURIComponent(base(f)) + ".webp";
+const RIMF = (sl) => sl ? 0.04 : 0.06;
+const rimOf = (it) => RIMF(it.sl) * Math.min(it.w, it.h);
+const full = (f) => "photos/" + encodeURIComponent(f);
+const ZHM = ["", "\u4E00\u6708", "\u4E8C\u6708", "\u4E09\u6708", "\u56DB\u6708", "\u4E94\u6708", "\u516D\u6708", "\u4E03\u6708", "\u516B\u6708", "\u4E5D\u6708", "\u5341\u6708", "\u5341\u4E00\u6708", "\u5341\u4E8C\u6708"];
+const ENM = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const ZN = "\u3007\u4E00\u4E8C\u4E09\u56DB\u4E94\u516D\u4E03\u516B\u4E5D", zhNum = (n) => n < 10 ? ZN[n] : n < 20 ? "\u5341" + (n % 10 ? ZN[n % 10] : "") : ZN[Math.floor(n / 10)] + "\u5341" + (n % 10 ? ZN[n % 10] : "");
+const md = (at) => {
+  const m = String(at || "").match(/(\d+)月(\d+)日/);
+  return m ? [+m[1], +m[2]] : [0, 0];
+};
+const hs = (s, k) => {
+  let h = 2166136261 ^ k;
+  for (const c of String(s)) {
+    h ^= c.charCodeAt(0);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) % 1e4 / 1e4;
+};
+const $ = (s) => document.querySelector(s), RAD = Math.PI / 180, cl = (v, a, b) => Math.max(a, Math.min(b, v));
+const sky = $("#sky"), stage = $("#stage"), camEl = $("#cam"), world = $("#world"), nav = $("#nav"), tip = $("#tip"), modesEl = $("#modes"), homeBtn = $("#home");
+let DIMS = {}, LIST = [], PH = [], MONS = [], MH = [], WI = [], MO = [], END = 1;
+let TAG = null;
+const TAGORD = [];
+const tagOk = (i) => !TAG || (LIST[i]?.tags || []).includes(TAG);
+const fogEl = $("#fog"), fogTr = fogEl.querySelector(".tr"), fogKn = fogEl.querySelector(".kn"), FOG = { f: 0.45, s: 0, m: 0, w: 0, o: 0 };
+function setFog(f) {
+  FOG.f = cl(f, 0, 1);
+  FOG.s = 2600 - 2200 * FOG.f;
+  FOG.m = 0.9 * FOG.f;
+  FOG.w = 0.27 * FOG.f;
+  FOG.o = 0.25 + 0.65 * FOG.f;
+  fogKn.style.top = ((1 - FOG.f) * 100).toFixed(1) + "%";
+}
+setFog(+(localStorage.getItem("shelfFog") ?? 0.45));
+let fogDrag = null;
+const fogAt = (e) => {
+  const r = fogTr.getBoundingClientRect();
+  setFog(1 - (e.clientY - r.top) / r.height);
+};
+fogEl.addEventListener("pointerdown", (e) => {
+  fogDrag = e.pointerId;
+  try {
+    fogEl.setPointerCapture(e.pointerId);
+  } catch (_) {
+  }
+  fogAt(e);
+});
+fogEl.addEventListener("pointermove", (e) => {
+  if (fogDrag === e.pointerId) fogAt(e);
+});
+const fogEnd = (e) => {
+  if (fogDrag !== e.pointerId) return;
+  fogDrag = null;
+  localStorage.setItem("shelfFog", FOG.f.toFixed(3));
+};
+fogEl.addEventListener("pointerup", fogEnd);
+fogEl.addEventListener("pointercancel", fogEnd);
+const ar = (s) => s.w && s.h ? s.w / s.h : 0.75;
+const isSlip = (s) => ar(s) < 0.6;
+function deckle(w, h, p2, a, seed) {
+  const c = Math.max(2.5, p2 * 0.45), f = (x, y) => x.toFixed(1) + " " + y.toFixed(1);
+  const jit = (i) => {
+    const v = Math.sin((i + 1) * 12.9898 + seed * 78.233) * 43758.5453;
+    return 0.78 + 0.44 * (v - Math.floor(v));
+  };
+  let d = `M${f(c, 0)}`, k = 0;
+  const edge = (x0, y0, x1, y1, nx, ny) => {
+    const L = Math.hypot(x1 - x0, y1 - y0), tx = (x1 - x0) / L, ty = (y1 - y0) / L;
+    const m = 2 * Math.max(1, Math.round(L / p2)), hw = L / m;
+    const P = (s, o) => f(x0 + tx * s + nx * o, y0 + ty * s + ny * o);
+    for (let i = 0; i < m; i++) {
+      const o0 = i % 2 ? a * jit(k) : 0, o1 = (i + 1) % 2 ? a * jit(k + 1) : 0;
+      if (i % 2) k++;
+      d += ` C${P(i * hw + hw * 0.4, o0)} ${P((i + 1) * hw - hw * 0.4, o1)} ${P((i + 1) * hw, o1)}`;
+    }
+  };
+  edge(c, 0, w - c, 0, 0, 1);
+  d += ` A${c} ${c} 0 0 1 ${f(w, c)}`;
+  edge(w, c, w, h - c, -1, 0);
+  d += ` A${c} ${c} 0 0 1 ${f(w - c, h)}`;
+  edge(w - c, h, c, h, 0, -1);
+  d += ` A${c} ${c} 0 0 1 ${f(0, h - c)}`;
+  edge(0, h - c, 0, c, 1, 0);
+  d += ` A${c} ${c} 0 0 1 ${f(c, 0)}Z`;
+  const svg = (b) => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}' preserveAspectRatio='none'>${b}</svg>`)}")`;
+  return { mask: svg(`<path d='${d}'/>`), rim: svg(`<path d='${d}' fill='none' stroke='rgb(112,94,66)' stroke-opacity='.42' stroke-width='${Math.max(0.8, a * 0.38).toFixed(2)}'/>`) };
+}
+function dress(el, w, h, p2, a, seed) {
+  const k = deckle(w, h, p2, a, seed);
+  el.style.setProperty("--dk", k.mask);
+  el.style.setProperty("--rim", k.rim);
+}
+let GROUP = "month";
+const zhY = (y) => String(y).split("").map((c) => "\u3007\u4E00\u4E8C\u4E09\u56DB\u4E94\u516D\u4E03\u516B\u4E5D"[+c] ?? c).join("");
+const ymd = (day) => {
+  const m = String(day || "").match(/^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?/);
+  return m ? [+m[1], +(m[2] || 0), +(m[3] || 0)] : [0, 0, 0];
+};
+function sec(s) {
+  const [y, m] = ymd(s.day);
+  if (GROUP === "decade") {
+    const d = Math.floor(y / 10) * 10;
+    return { key: "d" + d, en: d + "s", zh: zhY(d) + "\u5E74\u4EE3", sub: zhY(d) + "\u5E74\u4EE3", nav: d + "s" };
+  }
+  if (GROUP === "year" || !m) return { key: "y" + y, en: String(y), zh: zhY(y), sub: zhY(y) + "\u5E74", nav: String(y) };
+  return { key: y + "-" + m, en: ENM[m], zh: ZHM[m], sub: ZHM[m] + " \xB7 " + zhY(y), nav: ZHM[m] };
+}
+function dateHtml(s) {
+  if (s.date) return s.date + "<i></i>";
+  const [y, m, d] = ymd(s.day);
+  const big = d ? m + "." + d : m ? y + "." + m : y ? String(y) : "";
+  const small = s.date || (d ? ZHM[m] + zhNum(d) + "\u65E5" : m ? zhY(y) + "\u5E74" + ZHM[m] : y ? zhY(y) + "\u5E74" : "");
+  return big + "<i>" + small + "</i>";
+}
+const SKY = { per: 0, h: 0, iw: 0, ih: 0 };
+function skySize() {
+  SKY.h = Math.round(innerHeight * 1.5);
+  sky.style.height = SKY.h + "px";
+  if (!SKY.src) return;
+  const S = SKY.src;
+  SKY.per = SKY.iw * SKY.h / SKY.ih;
+  const ov = Math.min(S.cw, Math.ceil((innerWidth + 48) * SKY.iw / SKY.per)), W = SKY.iw + ov;
+  if (!SKY.cv || SKY.cv.width !== W) {
+    const c = SKY.cv || document.createElement("canvas");
+    c.width = W;
+    c.height = S.ch;
+    const g = c.getContext("2d");
+    g.drawImage(S.im, 0, S.y0, S.cw, S.ch, 0, 0, S.cw, S.ch);
+    g.save();
+    g.translate(S.cw * 2, 0);
+    g.scale(-1, 1);
+    g.drawImage(S.im, 0, S.y0, S.cw, S.ch, 0, 0, S.cw, S.ch);
+    g.restore();
+    g.drawImage(S.im, 0, S.y0, ov, S.ch, S.cw * 2, 0, ov, S.ch);
+    if (!SKY.cv) {
+      SKY.cv = c;
+      sky.appendChild(c);
+    }
+  }
+  const cssW = W * SKY.per / SKY.iw;
+  sky.style.width = Math.ceil(cssW) + "px";
+  SKY.cv.style.width = cssW.toFixed(1) + "px";
+}
+(function() {
+  const im = new Image();
+  im.onload = () => {
+    const cw = Math.min(im.naturalWidth, 1750), y0 = Math.round(im.naturalHeight * 0.03), ch = im.naturalHeight - y0;
+    SKY.src = { im, cw, y0, ch };
+    SKY.iw = cw * 2;
+    SKY.ih = ch;
+    skySize();
+  };
+  im.src = A + "sky.webp";
+})();
+skySize();
+const P0 = () => cl(innerHeight * 0.64, 420, 700), GAP = 82, MGAP = 440, FAR = 3200;
+const PADT = () => nav.getBoundingClientRect().bottom + 30, PADB = () => innerHeight - modesEl.getBoundingClientRect().top + 10;
+function build(list) {
+  LIST = list;
+  PH = [];
+  MONS = [];
+  WI = [];
+  MO = [];
+  world.innerHTML = "";
+  const G = Math.PI * (3 - Math.sqrt(5));
+  if (TAG && !list.some((s) => (s.tags || []).includes(TAG))) TAG = null;
+  let z = -380, prevM = null, lastZ = z;
+  list.forEach((s, i) => {
+    const S = sec(s), m = ymd(s.day)[1], mkey = S.key;
+    if (mkey !== prevM) {
+      if (prevM !== null) z -= MGAP;
+      const e = document.createElement("div");
+      e.className = "mo";
+      e.innerHTML = `<div><b>${S.en}</b><span>${S.sub}</span></div>`;
+      world.appendChild(e);
+      MO.push({ el: e, z });
+      MONS.push({ m, S, i, n: 0, z });
+      prevM = mkey;
+      z -= GAP * 1.5;
+    }
+    MONS[MONS.length - 1].n++;
+    const th = i * G + hs(s.file, 2) * 0.5, nearMo = MO.some((t) => Math.abs(t.z - z) < 450), rho = Math.max(nearMo ? 300 : 0, 150 + Math.pow(hs(s.file, 3), 1.15) * 1050);
+    const a = ar(s), sl = isSlip(s), bw = ((sl ? 112 : 146) + hs(s.file, 1) * 60) * (1 + (rho - 150) / 1500), w = bw * Math.sqrt(a), h = bw / Math.sqrt(a);
+    const x = Math.sin(th) * rho, y = -Math.cos(th) * rho * 0.88, ahead = 380 + rho * 1.1, L = Math.hypot(x, y, ahead);
+    lastZ = z;
+    const b = document.createElement("img");
+    b.className = "ph" + (sl ? " slip" : "");
+    b.dataset.i = i;
+    b.alt = "";
+    b.decoding = "async";
+    b.draggable = false;
+    b.onerror = () => {
+      const f = b.dataset.fb | 0;
+      b.dataset.fb = f + 1;
+      if (f === 0) {
+        b.dataset.raw = 1;
+        b.src = thumb(s.file);
+        syncRawBlur(PH[i]);
+      } else if (f === 1) b.src = full(s.file);
+    };
+    world.appendChild(b);
+    const home = { x, y, z, b: Math.atan2(-x, ahead) / RAD, a: Math.asin(y / L) / RAD, rz: (hs(s.file, 5) - 0.5) * 6, s: 1, hz: 0 };
+    PH[i] = {
+      el: b,
+      i,
+      w,
+      h,
+      sl,
+      k: 1,
+      m,
+      mk: MONS.length - 1,
+      home,
+      cur: { ...home },
+      an: null,
+      o0: null,
+      ph: i * 1.7 % 6.28,
+      tf: tagOk(i) ? 1 : 0,
+      pl: { dx: (hs(s.file, 8) - 0.5) * 16, dy: (hs(s.file, 9) - 0.5) * 16, rz: (hs(s.file, 10) - 0.5) * 12 }
+    };
+    setBl(PH[i], !!localStorage.getItem("shelfBlind"));
+    sizeEl(PH[i]);
+    put(PH[i]);
+    if (hs(s.file, 7) < 0.3) {
+      const h7 = hs(s.file, 7), q = Math.floor(hs(s.file, 8) * 6), ww = 600 + hs(s.file, 9) * 440, wz = z + (hs(s.file, 12) < 0.5 ? GAP * 0.4 : -GAP * 0.5);
+      const wi = document.createElement("canvas");
+      wi.className = "wi";
+      wisp(wi, q, ww);
+      wi.style.width = ww + "px";
+      wi.style.marginLeft = -ww / 2 + "px";
+      wi.style.marginTop = -ww * 0.3 + "px";
+      world.appendChild(wi);
+      WI.push({ el: wi, h7, ww, x: (hs(s.file, 10) - 0.5) * 520, y: (hs(s.file, 11) - 0.5) * 560, z: wz, ro: hs(s.file, 13) < 0.5 ? 180 : 0 });
+    }
+    z -= GAP * (0.75 + hs(s.file, 6) * 0.5);
+  });
+  END = Math.max(0, -lastZ - 650);
+  MH = MONS.map((t) => {
+    const e = document.createElement("div");
+    e.className = "mh";
+    e.innerHTML = `<i>${t.S.en}</i><b>${t.S.zh}</b>`;
+    world.appendChild(e);
+    return { el: e, y: 0, pos: null };
+  });
+  nav.classList.toggle("num", GROUP !== "month");
+  nav.innerHTML = MONS.map((t, k) => `<button type="button" data-k="${k}">${t.S.nav}</button>`).join("");
+  nav.querySelectorAll("button").forEach((b) => b.onclick = () => goMonth(+b.dataset.k));
+  renderTags();
+  C = -760;
+  intro = performance.now();
+}
+const WISP = [];
+function wisp(c, q, ww) {
+  const w = WISP[q] || (WISP[q] = new Promise((r) => {
+    const im = new Image();
+    im.onload = () => r(im);
+    im.onerror = () => r(null);
+    im.src = A + "wisp" + q + ".webp";
+  }));
+  w.then((im) => {
+    if (!im) return;
+    c.width = im.naturalWidth;
+    c.height = im.naturalHeight;
+    c.style.height = (ww * im.naturalHeight / im.naturalWidth).toFixed(1) + "px";
+    c.getContext("2d").drawImage(im, 0, 0);
+  });
+}
+function put(it, bob) {
+  const c = it.cur;
+  it.el.style.transform = `translate3d(${c.x.toFixed(1)}px,${(c.y + (bob || 0)).toFixed(1)}px,${c.z.toFixed(1)}px) rotateY(${c.b.toFixed(2)}deg) rotateX(${c.a.toFixed(2)}deg) rotateZ(${c.rz.toFixed(2)}deg) scale(${(c.s / it.k).toFixed(4)})`;
+}
+function setBl(it, on, slow) {
+  const e = it.el;
+  e.classList.toggle("bl", on);
+  if (e.dataset.raw) {
+    syncRawBlur(it, slow);
+    return;
+  }
+  const want = baked(LIST[it.i].file, on ? "b" : "d");
+  if (!on && slow) {
+    e.style.transition = "none";
+    e.style.filter = `blur(${(Math.min(it.w, it.h) * 0.11).toFixed(1)}px)`;
+    e.src = want;
+    e.offsetWidth;
+    e.style.transition = "filter .7s cubic-bezier(.3,.6,.3,1)";
+    e.style.filter = "blur(0px)";
+    clearTimeout(e._rv);
+    e._rv = setTimeout(() => {
+      e.style.filter = "";
+      e.style.transition = "";
+    }, 760);
+    return;
+  }
+  if (e.getAttribute("src") !== want) e.src = want;
+}
+function syncRawBlur(it, slow) {
+  const e = it.el;
+  e.style.transition = slow ? "filter .7s cubic-bezier(.3,.6,.3,1)" : "none";
+  e.style.filter = e.classList.contains("bl") ? `blur(${(Math.min(it.w, it.h) * 0.11).toFixed(1)}px)` : "";
+}
+const FL = { W: 0, H: 0 };
+let FD = P0(), S0 = 0, WY = 0;
+function layoutFlat() {
+  const W = Math.min(innerWidth - 26, 560), g = 9, hT = Math.max(112, W * 0.38), HD = 64, GM = 30;
+  FL.W = W;
+  const rim = (j) => 2 * rimOf(PH[j]) / PH[j].h, sumA = (row) => row.reduce((q, j) => q + ar(LIST[j]) + rim(j), 0), Hof = (row) => (W - g * (row.length - 1)) / sumA(row);
+  let y = 0, first = true;
+  MONS.forEach((t, k) => {
+    const ids = [];
+    for (let j = t.i; j < t.i + t.n; j++) if (tagOk(j)) ids.push(j);
+    MH[k].off = !ids.length;
+    MH[k].y = y;
+    if (!ids.length) return;
+    if (!first) y += GM;
+    first = false;
+    MH[k].y = y;
+    y += HD;
+    let row = [];
+    const flush = (H) => {
+      let tw = g * (row.length - 1);
+      row.forEach((j) => tw += (ar(LIST[j]) + rim(j)) * H);
+      let x = -tw / 2, rh = 0;
+      row.forEach((j) => {
+        const ow = (ar(LIST[j]) + rim(j)) * H, s = H / PH[j].h;
+        rh = Math.max(rh, H + 2 * rimOf(PH[j]) * s);
+        PH[j].fl = { u: x + ow / 2, v: 0, s };
+        x += ow + g;
+      });
+      row.forEach((j) => PH[j].fl.v = y + rh / 2);
+      y += rh + g;
+      row = [];
+    };
+    for (const j of ids) {
+      row.push(j);
+      const H = Hof(row);
+      if (H <= hT) {
+        if (row.length > 1) {
+          const prev = row.slice(0, -1), Hp = Hof(prev);
+          if (Hp - hT < hT - H) {
+            row = prev;
+            flush(Hp);
+            row = [j];
+            continue;
+          }
+        }
+        flush(H);
+      }
+    }
+    if (row.length) flush(Math.min(hT, Hof(row)));
+  });
+  FL.H = y;
+}
+function wallPt(u, v, dz) {
+  const c = Math.cos(WY * RAD), s = Math.sin(WY * RAD), zz = -FD + dz;
+  return { x: u * c - zz * s, y: v, z: u * s + zz * c - C };
+}
+function flatBounds() {
+  const k = p / FD, oy = innerHeight * 0.46, t = PADT(), bt = PADB();
+  const minY = -S0 - (t - oy) / k;
+  let maxY = FL.H - S0 - (innerHeight - bt - oy) / k;
+  if (maxY < minY) maxY = minY;
+  const mx = Math.max(0, FL.W / 2 - (innerWidth / 2 - 12) / k);
+  return { minY, maxY, mx };
+}
+let yaw = 0, pitch = 0, p = P0(), tp = p, vy = 0, vp = 0, tYaw = null, tPitch = null, gx = 0, gy = 0, txg = 0, tyg = 0, drag = null, pinch = null;
+let idleAt = 0, C = 0, vC = 0, flyC = null, intro = null, lastSharpC = 0, stillAt = 0;
+let MODE = "sky", moving = 0, pan = { x: 0, y: 0 }, tpan = null, vpan = { x: 0, y: 0 }, pLast = -1;
+const PMAX = 32;
+const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function lerpAng(a, b, e) {
+  return a + (((b - a) % 360 + 540) % 360 - 180) * e;
+}
+function mixPos(f, t, e) {
+  const ez = -C, fx = f.x, fy = f.y, fz = f.z - ez, tx = t.x, ty = t.y, tz = t.z - ez, rf = Math.hypot(fx, fy, fz) || 1, rt = Math.hypot(tx, ty, tz) || 1;
+  let u = [fx / rf, fy / rf, fz / rf], v = [tx / rt, ty / rt, tz / rt], d = u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+  if (d < -0.995) {
+    v = [v[0], v[1] - 0.2, v[2]];
+    const L = Math.hypot(...v);
+    v = v.map((q) => q / L);
+    d = u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+  }
+  const om = Math.acos(cl(d, -1, 1)), r = rf + (rt - rf) * e;
+  if (om < 1e-3) return { x: f.x + (t.x - f.x) * e, y: f.y + (t.y - f.y) * e, z: f.z + (t.z - f.z) * e };
+  const so = Math.sin(om), A1 = Math.sin((1 - e) * om) / so, B1 = Math.sin(e * om) / so;
+  return { x: (A1 * u[0] + B1 * v[0]) * r, y: (A1 * u[1] + B1 * v[1]) * r, z: (A1 * u[2] + B1 * v[2]) * r + ez };
+}
+function fly(it, to, delay, dur) {
+  it.an = { f: { ...it.cur }, t: to, t0: performance.now() + delay, dur };
+}
+function step(T) {
+  let busyN = 0;
+  for (const it of PH) {
+    const a = it.an;
+    if (!a) continue;
+    busyN++;
+    const k = (T - a.t0) / a.dur;
+    if (k < 0) continue;
+    if (k >= 1) {
+      it.cur = { ...a.t };
+      it.an = null;
+    } else {
+      const e = ease(k), e2 = 1 - Math.pow(1 - k, 3), q = mixPos(a.f, a.t, e);
+      it.cur = { ...q, b: lerpAng(a.f.b, a.t.b, e), a: a.f.a + (a.t.a - a.f.a) * e, rz: a.f.rz + (a.t.rz - a.f.rz) * e, s: a.f.s + (a.t.s - a.f.s) * (a.t.s < a.f.s ? e2 : e), hz: a.f.hz + (a.t.hz - a.f.hz) * e };
+    }
+    put(it);
+  }
+  return busyN;
+}
+let FT = 0, BUSY_AT = 0, FS = {}, FS_AT = 0;
+let NAVK = -2;
+function frame(T) {
+  const free = !drag && !pinch && !lb.classList.contains("on");
+  if (tYaw != null) {
+    yaw += (tYaw - yaw) * 0.075;
+    pitch += (tPitch - pitch) * 0.075;
+    if (Math.abs(tYaw - yaw) < 0.03 && Math.abs(tPitch - pitch) < 0.03) {
+      yaw = tYaw;
+      pitch = tPitch;
+      tYaw = tPitch = null;
+    }
+  } else if (MODE === "sky" && free) {
+    yaw += vy;
+    pitch += vp;
+    vy *= 0.92;
+    vp *= 0.92;
+  }
+  pitch = cl(pitch, -PMAX, PMAX);
+  if (MODE === "sky") {
+    if (intro != null) {
+      const u = Math.min(1, (T - intro) / 1700);
+      C = -760 * (1 - (1 - Math.pow(1 - u, 3)));
+      if (u >= 1) intro = null;
+    } else if (flyC) {
+      const u = Math.min(1, (T - flyC.t0) / flyC.T);
+      C = flyC.c0 + flyC.d * ease(u);
+      if (u >= 1) flyC = null;
+    } else if (!pinch) {
+      C += vC;
+      vC *= 0.9;
+      if (C < 0) {
+        C += (0 - C) * 0.18;
+        vC *= 0.5;
+      }
+      if (C > END) {
+        C += (END - C) * 0.18;
+        vC *= 0.5;
+      }
+    }
+    if (Math.abs(C - lastSharpC) > 2) {
+      lastSharpC = C;
+      stillAt = T;
+    } else if (stillAt && T - stillAt > 320 && !moving) {
+      stillAt = 0;
+      reraster();
+    }
+  }
+  p += (tp - p) * 0.14;
+  if (MODE === "flat") {
+    const B = flatBounds();
+    if (tpan) {
+      pan.x += (tpan.x - pan.x) * 0.12;
+      pan.y += (tpan.y - pan.y) * 0.12;
+      if (Math.abs(tpan.y - pan.y) < 0.4 && Math.abs(tpan.x - pan.x) < 0.4) {
+        pan.x = tpan.x;
+        pan.y = tpan.y;
+        tpan = null;
+      }
+    } else if (free) {
+      pan.x += vpan.x;
+      pan.y += vpan.y;
+      vpan.x *= 0.93;
+      vpan.y *= 0.93;
+      if (pan.y < B.minY || pan.y > B.maxY || Math.abs(pan.x) > B.mx) {
+        vpan.x = vpan.y = 0;
+        tpan = { x: cl(pan.x, -B.mx, B.mx), y: cl(pan.y, B.minY, B.maxY) };
+      }
+    }
+  }
+  gx += (txg - gx) * 0.06;
+  gy += (tyg - gy) * 0.06;
+  const tw = MODE === "sky" ? 1 : MODE === "pile" ? 0.5 : 0, Y = yaw + gx * tw, P = pitch + gy * tw;
+  if (Math.abs(p - pLast) > 0.05) {
+    stage.style.perspective = p.toFixed(1) + "px";
+    pLast = p;
+  }
+  const c = Math.cos(WY * RAD), s = Math.sin(WY * RAD), px = pan.x * c, pz = pan.x * s, ez = -C + pz;
+  camEl.style.transform = `translateZ(${p.toFixed(1)}px) rotateX(${P.toFixed(3)}deg) rotateY(${Y.toFixed(3)}deg) translate3d(${(-px).toFixed(1)}px,${(-pan.y).toFixed(1)}px,${(-ez).toFixed(1)}px)`;
+  if (SKY.per) {
+    const per = SKY.per, sx = (-Y / 360 * per % per + per) % per, ty = cl(-SKY.h / 6 + P / PMAX * SKY.h / 6 - pan.y * 0.03, -SKY.h / 3, 0), k = Math.max(1, Math.pow(p / P0(), 0.35)) * (1 + cl(C / END, 0, 1) * 0.18), cx = innerWidth / 2, cy2 = innerHeight * 0.46;
+    sky.style.transform = `translate3d(${cx}px,${cy2}px,0) scale(${k.toFixed(4)}) translate3d(${(sx - per - cx).toFixed(1)}px,${(ty - cy2).toFixed(1)}px,0)`;
+  }
+  const was = moving;
+  moving = step(T);
+  if (was && !moving) reraster();
+  if (zoomed && Math.abs(tp - p) < 0.5 && !pinch) {
+    zoomed = false;
+    reraster();
+  }
+  const cy = Math.cos(Y * RAD), sy = Math.sin(Y * RAD), cp = Math.cos(P * RAD), sp2 = Math.sin(P * RAD), tt = T / 1e3, sk = MODE === "sky";
+  const depOf = (x, y, z) => {
+    const X = x - px, Yy = y - pan.y, Z = z - ez, z1 = -X * sy + Z * cy;
+    return [-(Yy * sp2 + z1 * cp), Math.hypot(X, Yy, Z), Z];
+  };
+  const still = lb.classList.contains("on") && !busy;
+  if (!still) for (const it of PH) {
+    const q = it.cur, [dep, dist, rel] = depOf(q.x, q.y, q.z);
+    it.dep = dep;
+    const tg = tagOk(it.i) ? 1 : 0;
+    if (it.tf !== tg) {
+      it.tf += (tg - it.tf) * 0.14;
+      if (Math.abs(tg - it.tf) < 0.01) it.tf = tg;
+    }
+    const show = (tg || it.tf > 0) && (MODE === "pile" ? PL.rank[it.i] < PVIS || !!it.an && (T - it.an.t0) / it.an.dur < 0.72 : !sk || it.an || rel > -FAR && rel < 2400);
+    if (it.d0 !== show) {
+      it.el.style.display = show ? "" : "none";
+      it.d0 = show;
+      it.v0 = null;
+    }
+    if (!show) continue;
+    let o = cl((dep - 40) / 120, 0, 1);
+    if (sk && !it.an) o *= cl((rel + FAR) / 500, 0, 1);
+    if (sk && !it.an) {
+      const t = cl((dist - FOG.s) / (FAR + 400 - FOG.s), 0, 1) * FOG.m;
+      q.hz = (q.hz || 0) + (t - (q.hz || 0)) * 0.12;
+      const nb = dist < 1600 && o > 0;
+      if (nb || it.bb) {
+        put(it, nb ? Math.sin(tt * 0.7 + it.ph) * 6 : 0);
+        it.bb = nb;
+      }
+    }
+    o *= (1 - (q.hz || 0)) * it.tf;
+    if (Math.abs((it.o0 ?? -1) - o) > 0.01) {
+      it.el.style.opacity = o.toFixed(2);
+      it.o0 = o;
+    }
+    const vis = o > 0 && it.el !== HELD;
+    if (it.v0 !== vis) {
+      it.el.style.visibility = vis ? "" : "hidden";
+      it.v0 = vis;
+    }
+  }
+  if (sk && !still) {
+    const bb = `rotateY(${(-Y).toFixed(2)}deg) rotateX(${(-P).toFixed(2)}deg)`;
+    const WR = 2e3, dW = p / (2 * innerWidth);
+    for (const w of WI) {
+      const [dep, , rel] = depOf(w.x, w.y, w.z), near = w.h7 < FOG.w && rel > -WR && rel < 300;
+      if (w.d0 !== near) {
+        w.el.style.display = near ? "" : "none";
+        w.d0 = near;
+        w.v0 = null;
+      }
+      if (!near) continue;
+      const o = FOG.o * cl((rel + WR) / 500, 0, 1) * cl((dep - 300) / 420, 0, 1) * cl((dep - w.ww * dW) / 350, 0, 1), vis = o > 0.015;
+      if (w.v0 !== vis) {
+        w.el.style.visibility = vis ? "" : "hidden";
+        w.v0 = vis;
+      }
+      if (!vis) continue;
+      w.el.style.opacity = o.toFixed(3);
+      w.el.style.transform = `translate3d(${(w.x + Math.sin(tt * 0.12 + w.z) * 30).toFixed(1)}px,${w.y}px,${w.z}px) ${bb} rotateZ(${w.ro}deg)`;
+    }
+    let ahead = 0;
+    for (const m of MO) {
+      const [dep, , rel] = depOf(0, -30, m.z), show = rel > -FAR && rel < 200 && !ahead;
+      if (rel < -60) ahead = 1;
+      if (m.d0 !== show) {
+        m.el.style.display = show ? "" : "none";
+        m.d0 = show;
+      }
+      if (!show) continue;
+      const o = cl((rel + 1500) / 700, 0, 1) * cl((dep - 200) / 240, 0, 1);
+      m.el.style.opacity = o.toFixed(3);
+      m.el.style.transform = `translate3d(0,-30px,${m.z}px) ${bb}`;
+    }
+  }
+  let bk = 0;
+  if (sk) {
+    for (let k = 0; k < MONS.length; k++) {
+      if (MONS[k].has !== false && -MONS[k].z - 600 <= C) bk = k;
+    }
+  }
+  if (MODE === "flat") {
+    const k = p / FD, oy = innerHeight * 0.46, lim = PADT() + innerHeight * 0.3;
+    MH.forEach((h, j) => {
+      if (!h.off && oy + (h.y - S0 - pan.y) * k <= lim) bk = j;
+    });
+  }
+  if (MODE === "pile") bk = -1;
+  nav.querySelectorAll("button").forEach((b, k) => b.classList.toggle("on", k === bk));
+  if (bk !== NAVK) {
+    NAVK = bk;
+    const nb = nav.children[bk];
+    if (nb && nav.scrollWidth > nav.clientWidth) nav.scrollTo({ left: nb.offsetLeft - nav.clientWidth / 2 + nb.offsetWidth / 2, behavior: "smooth" });
+  }
+  homeBtn.classList.toggle("on", sk && C > END - 700 && !lb.classList.contains("on"));
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+let zoomed = false;
+function sizeEl(it) {
+  const r = rimOf(it), w = it.w + 2 * r, h = it.h + 2 * r, b = it.el;
+  b.style.width = w.toFixed(1) + "px";
+  b.style.height = h.toFixed(1) + "px";
+  b.style.marginLeft = (-w / 2).toFixed(1) + "px";
+  b.style.marginTop = (-h / 2).toFixed(1) + "px";
+}
+function reraster() {
+}
+addEventListener("deviceorientation", (e) => {
+  if (e.gamma == null) return;
+  txg = cl(-e.gamma / 5, -6, 6);
+  tyg = cl((e.beta - 50) / 7, -5, 5);
+});
+function setMode(m) {
+  if (m === MODE || busy || lb.classList.contains("on") || !PH.length) return;
+  rebase();
+  const from = MODE;
+  MODE = m;
+  document.body.dataset.mode = m;
+  modesEl.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.m === m));
+  const n = PH.length;
+  vy = vp = 0;
+  vC = 0;
+  flyC = null;
+  intro = null;
+  vpan.x = vpan.y = 0;
+  tpan = null;
+  if (C < 0) C = 0;
+  if (m === "sky") {
+    tp = P0();
+    tYaw = yaw;
+    tPitch = 0;
+    PH.forEach((it, i) => fly(it, { ...it.home }, Math.min(520, i * (520 / n)), 1050));
+    MH.forEach((h) => h.el.classList.remove("on"));
+    setTimeout(buzz, 1050 + 520 - 80);
+    doneTip("shelfTipFlat");
+    return;
+  }
+  FD = P0();
+  tp = FD;
+  WY = yaw;
+  tYaw = yaw;
+  tPitch = 0;
+  if (m === "flat") {
+    flatTo(MODE_MK(from), 480);
+    setTimeout(buzz, 1e3 + 480 - 80);
+    setTimeout(() => showTip("shelfTipFlat", "\u4E0A\u4E0B\u62D6\u7740\u7FFB \xB7 \u70B9\u4E00\u5F20\u62FF\u8D77\u6765"), 1500);
+    return;
+  }
+  pileTo(560, 760);
+  setTimeout(buzz, 760 + 560 - 60);
+  setTimeout(() => showTip("shelfTipPile", "\u62E8\u5F00\u6700\u4E0A\u9762\u90A3\u5F20 \xB7 \u70B9\u4E00\u4E0B\u62FF\u8D77\u6765"), 1400);
+}
+function flatTo(mk, stag) {
+  layoutFlat();
+  const n = PH.length;
+  mk = Math.max(0, mk);
+  let k0 = MH.findIndex((h, k) => k >= mk && !h.off);
+  if (k0 < 0) k0 = Math.max(0, MH.findIndex((h) => !h.off));
+  const oy = innerHeight * 0.46, t = PADT(), lo = oy - t, hi = Math.max(lo, FL.H - (innerHeight - PADB() - oy));
+  S0 = cl(MH[k0].y - (t - oy), lo, hi);
+  PH.forEach((it, i) => {
+    if (!tagOk(i)) return;
+    const w = wallPt(it.fl.u, it.fl.v - S0, 0);
+    fly(it, { ...w, b: -WY, a: 0, rz: 0, s: it.fl.s, hz: 0 }, Math.min(stag, i * (stag / n)), 1e3);
+  });
+  MH.forEach((h, k) => {
+    if (h.off) {
+      h.el.classList.remove("on");
+      return;
+    }
+    const w = wallPt(0, h.y + 40 - S0, 0);
+    h.pos = w;
+    h.el.style.transform = `translate3d(${w.x.toFixed(1)}px,${w.y.toFixed(1)}px,${w.z.toFixed(1)}px) rotateY(${(-WY).toFixed(2)}deg)`;
+    h.el.classList.add("on");
+  });
+}
+function pileTo(stag, dur) {
+  const ids = PH.map((_, i) => i).filter(tagOk), n = Math.max(1, ids.length);
+  PL.dz = Math.min(0.5, 40 / n);
+  PL.order = ids;
+  pileRank();
+  MH.forEach((h) => h.el.classList.remove("on"));
+  PH.forEach((it) => {
+    it.ps = Math.min(innerWidth * 0.6 / it.w, innerHeight * 0.46 / it.h);
+  });
+  ids.forEach((i, r) => fly(PH[i], pilePose(PH[i], r), Math.min(stag, (n - 1 - r) * (stag / n)), dur));
+}
+const PVIS = 10, PL = { order: [], rank: [], dz: 0.5 };
+function pileRank() {
+  PL.rank = [];
+  PL.order.forEach((j, r) => PL.rank[j] = r);
+  for (const it of PH) it.d0 = null;
+}
+function pilePose(it, r) {
+  const w = wallPt(it.pl.dx, it.pl.dy - 14, (PH.length - r) * PL.dz);
+  return { ...w, b: -WY, a: 0, rz: it.pl.rz, s: it.ps, hz: 0 };
+}
+const PFOL = [1, 0.16, 0.08, 0.04];
+function pileFollow(dx, dy) {
+  const k = FD / p, n = PH.length;
+  PL.order.slice(0, 4).forEach((j, r) => {
+    const it = PH[j], f = PFOL[r], w = wallPt(it.pl.dx + dx * k * f, it.pl.dy - 14 + dy * k * f, (n - r) * PL.dz + (r ? 0 : 8));
+    it.an = null;
+    it.cur = { ...w, b: -WY, a: 0, rz: it.pl.rz + (r ? dx * f / 40 : dx / 30), s: it.ps, hz: 0 };
+    put(it);
+  });
+}
+function pileRelease(dx, dy, vx, vy2) {
+  const n = PH.length, top = PL.order[0], it = PH[top];
+  if (Math.hypot(dx, dy) < 90 && Math.hypot(vx, vy2) < 0.6) {
+    PL.order.slice(0, 4).forEach((j, r) => fly(PH[j], pilePose(PH[j], r), 0, r ? 300 : 380));
+    return;
+  }
+  const ang = Math.atan2(dy + vy2 * 120, dx + vx * 120), D = Math.max(innerWidth, innerHeight) * FD / p;
+  const out = wallPt(it.pl.dx + Math.cos(ang) * D, it.pl.dy - 14 + Math.sin(ang) * D, n * PL.dz + 8);
+  fly(it, { ...out, b: -WY, a: 0, rz: it.pl.rz + (Math.cos(ang) >= 0 ? 1 : -1) * 24, s: it.ps, hz: 0 }, 0, 240);
+  buzz();
+  doneTip("shelfTipPile");
+  PL.order.push(PL.order.shift());
+  pileRank();
+  PL.order.slice(0, 4).forEach((j, r) => fly(PH[j], pilePose(PH[j], r), 0, 300));
+  setTimeout(() => {
+    if (MODE !== "pile") return;
+    PL.order.forEach((j, r) => {
+      if (j !== top && r >= 4) fly(PH[j], pilePose(PH[j], r), 0, 10);
+    });
+    fly(it, pilePose(it, PL.order.indexOf(top)), 0, 520);
+  }, 250);
+}
+function rebase() {
+  if (!pan.x && !pan.y) return;
+  const c = Math.cos(WY * RAD), s = Math.sin(WY * RAD), dx = pan.x * c, dz = pan.x * s, dy = pan.y;
+  for (const it of PH) {
+    it.cur.x -= dx;
+    it.cur.y -= dy;
+    it.cur.z -= dz;
+    if (it.an) {
+      it.an.t.x -= dx;
+      it.an.t.y -= dy;
+      it.an.t.z -= dz;
+    }
+    put(it);
+  }
+  MH.forEach((h) => {
+    if (!h.pos) return;
+    h.pos.x -= dx;
+    h.pos.y -= dy;
+    h.pos.z -= dz;
+    h.el.style.transform = `translate3d(${h.pos.x.toFixed(1)}px,${h.pos.y.toFixed(1)}px,${h.pos.z.toFixed(1)}px) rotateY(${(-WY).toFixed(2)}deg)`;
+  });
+  pan.x = pan.y = 0;
+}
+function MODE_MK(from) {
+  if (from === "sky") {
+    let k = 0;
+    for (let j = 0; j < MONS.length; j++) {
+      if (-MONS[j].z - 600 <= C) k = j;
+    }
+    return k;
+  }
+  const b = nav.querySelector("button.on");
+  return b ? +b.dataset.k : 0;
+}
+function flyTo(c) {
+  const c0 = C, d = cl(c, 0, END) - c0;
+  flyC = { c0, d, T: Math.min(2400, 700 + Math.abs(d) * 0.12), t0: performance.now() };
+  vC = 0;
+  intro = null;
+}
+function goMonth(k) {
+  if (lb.classList.contains("on")) return;
+  if (MODE === "flat") {
+    const B = flatBounds(), t = PADT(), oy = innerHeight * 0.46, kk = p / FD;
+    tpan = { x: 0, y: cl(MH[k].y - S0 - (t - oy) / kk, B.minY, B.maxY) };
+    vpan.x = vpan.y = 0;
+    return;
+  }
+  if (MODE === "pile") {
+    setMode("sky");
+    setTimeout(() => goMonth(k), 1100);
+    return;
+  }
+  flyTo(-MONS[k].z - 420);
+  tYaw = Math.round(yaw / 360) * 360;
+  tPitch = 0;
+}
+homeBtn.onclick = () => {
+  flyTo(0);
+  tYaw = Math.round(yaw / 360) * 360;
+  tPitch = 0;
+};
+modesEl.querySelectorAll("button").forEach((b) => b.onclick = () => setMode(b.dataset.m));
+function showTip(k, txt) {
+  if (localStorage.getItem(k)) return;
+  tip.textContent = txt;
+  tip.dataset.k = k;
+  tip.classList.add("on");
+}
+function doneTip(k) {
+  localStorage.setItem(k, "1");
+  if (tip.dataset.k === k) tip.classList.remove("on");
+}
+const sp = /* @__PURE__ */ new Map();
+const dist2 = () => {
+  const [a, b] = [...sp.values()];
+  return Math.max(20, Math.hypot(a.x - b.x, a.y - b.y));
+};
+stage.addEventListener("pointerdown", (e) => {
+  sp.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  tagsEl.classList.remove("open");
+  try {
+    stage.setPointerCapture(e.pointerId);
+  } catch (_) {
+  }
+  if (sp.size === 2) {
+    pinch = { d0: dist2(), dl: dist2(), p0: tp };
+    drag = null;
+    vC = 0;
+    flyC = null;
+    intro = null;
+    return;
+  }
+  drag = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: performance.now(), lt: performance.now(), vx: 0, vy: 0, moved: false };
+  vy = vp = 0;
+  vpan.x = vpan.y = 0;
+  if (MODE === "pile") {
+    const h = photoAt(e.clientX, e.clientY);
+    drag.pile = h && !moving ? PL.order[0] : null;
+  }
+  if (MODE === "sky") {
+    tYaw = tPitch = null;
+  } else tpan = null;
+});
+stage.addEventListener("pointermove", (e) => {
+  if (!sp.has(e.pointerId)) return;
+  sp.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch && sp.size >= 2) {
+    const d = dist2();
+    if (MODE === "sky") {
+      const dir = Math.cos(yaw * RAD) >= 0 ? 1 : -1, dc = (d - pinch.dl) * 2.6 * dir;
+      pinch.dl = d;
+      C = cl(C + dc, -120, END + 120);
+      vC = dc;
+      doneTip("shelfTipSky");
+    } else if (MODE === "flat") {
+      const P = P0();
+      tp = cl(pinch.p0 * d / pinch.d0, P * 0.85, P * 2.2);
+      zoomed = true;
+    }
+    return;
+  }
+  if (!drag) return;
+  const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly, now = performance.now(), dt = Math.max(1, now - drag.lt);
+  drag.lx = e.clientX;
+  drag.ly = e.clientY;
+  drag.lt = now;
+  drag.vx = drag.vx * 0.4 + dx / dt * 0.6;
+  drag.vy = drag.vy * 0.4 + dy / dt * 0.6;
+  if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) drag.moved = true;
+  if (!drag.moved) return;
+  if (MODE === "pile") {
+    if (drag.pile != null) pileFollow(e.clientX - drag.x, e.clientY - drag.y);
+    return;
+  }
+  if (MODE === "sky") {
+    const k = 1 / (p * RAD);
+    yaw -= dx * k;
+    pitch += dy * k;
+    vy = -dx * k;
+    vp = dy * k;
+  } else if (MODE === "flat") {
+    doneTip("shelfTipFlat");
+    const k = FD / p, B = flatBounds();
+    const rub = (v, lo, hi, d) => v < lo && d < 0 || v > hi && d > 0 ? d * 0.35 : d;
+    pan.x += rub(pan.x, -B.mx, B.mx, -dx * k);
+    pan.y += rub(pan.y, B.minY, B.maxY, -dy * k);
+    vpan.x = -dx * k * (B.mx ? 1 : 0);
+    vpan.y = -dy * k;
+  }
+});
+function quadOf(it, PM) {
+  const M = PM.multiply(new DOMMatrix(it.el.style.transform)), w = it.el.offsetWidth / 2, h = it.el.offsetHeight / 2, ox = innerWidth / 2, oy = innerHeight * 0.46, q = [];
+  for (const [a, b] of [[-w, -h], [w, -h], [w, h], [-w, h]]) {
+    const t = M.transformPoint(new DOMPoint(a, b, 0, 1));
+    if (t.w <= 1e-3) return null;
+    q.push([ox + t.x / t.w, oy + t.y / t.w, 1 / t.w]);
+  }
+  return q;
+}
+function nearAt(x, y, q) {
+  const [a, b, c] = q, d = (b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]);
+  if (Math.abs(d) < 1e-6) return a[2];
+  const u = ((x - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (y - a[1])) / d, v = ((b[0] - a[0]) * (y - a[1]) - (x - a[0]) * (b[1] - a[1])) / d;
+  return a[2] + u * (b[2] - a[2]) + v * (c[2] - a[2]);
+}
+function inQuad(x, y, q) {
+  let s = 0;
+  for (let k = 0; k < 4; k++) {
+    const [x1, y1] = q[k], [x2, y2] = q[(k + 1) % 4], c = (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1);
+    if (c === 0) continue;
+    const g = c > 0 ? 1 : -1;
+    if (s && g !== s) return false;
+    s = g;
+  }
+  return true;
+}
+function photoAt(x, y) {
+  let best = null, bd = Infinity;
+  const pp = parseFloat(stage.style.perspective) || p, PM = new DOMMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -1 / pp, 0, 0, 0, 1]).multiply(new DOMMatrix(camEl.style.transform));
+  for (const it of PH) {
+    if (!it.v0 || it.d0 === false || it.el === HELD) continue;
+    const r = it.el.getBoundingClientRect();
+    if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
+    const q = quadOf(it, PM);
+    if (!q || !inQuad(x, y, q)) continue;
+    const d = -nearAt(x, y, q);
+    if (d < bd) {
+      bd = d;
+      best = it;
+    }
+  }
+  return best;
+}
+function upStage(e) {
+  if (!sp.has(e.pointerId)) return;
+  sp.delete(e.pointerId);
+  if (pinch) {
+    if (sp.size < 2) pinch = null;
+    drag = null;
+    return;
+  }
+  const d = drag;
+  drag = null;
+  if (!d) return;
+  if (d.moved) {
+    if (MODE === "pile" && d.pile != null) pileRelease(e.clientX - d.x, e.clientY - d.y, performance.now() - d.lt < 80 ? d.vx : 0, performance.now() - d.lt < 80 ? d.vy : 0);
+    return;
+  }
+  const hitIt = photoAt(e.clientX, e.clientY);
+  if (!hitIt) return;
+  const el = hitIt.el;
+  const held = performance.now() - d.t;
+  const it = PH[+el.dataset.i];
+  if (el.classList.contains("bl")) {
+    if (held < 550) {
+      setBl(it, false, true);
+      buzz();
+      syncBlind();
+    }
+    return;
+  }
+  if (held >= 550) {
+    setBl(it, true);
+    buzz();
+    syncBlind();
+    return;
+  }
+  openLb(+el.dataset.i);
+}
+const blindBtn = $("#blind");
+function syncBlind() {
+  const any = PH.some((q) => q.el.classList.contains("bl"));
+  blindBtn.innerHTML = any ? "<i>unveil</i><b>\u63ED\u5F00</b>" : "<i>veil</i><b>\u8499\u4E0A</b>";
+  localStorage.setItem("shelfBlind", any ? "1" : "");
+}
+function blindAll(on) {
+  const T = Math.min(700, PH.length * 9);
+  BUSY_AT = performance.now() + T + 300;
+  PH.forEach((q, i) => setTimeout(() => setBl(q, on), i * (T / PH.length)));
+  setTimeout(syncBlind, T + 60);
+  buzz();
+}
+blindBtn.onclick = () => blindAll(!PH.some((q) => q.el.classList.contains("bl")));
+const tagsEl = $("#tags");
+function renderTags() {
+  const c = {};
+  for (const s of LIST) for (const t of s.tags || []) c[t] = (c[t] || 0) + 1;
+  const ks = Object.keys(c).sort((a, b) => {
+    const x = TAGORD.indexOf(a), y = TAGORD.indexOf(b);
+    return (x < 0 ? 99 : x) - (y < 0 ? 99 : y) || c[b] - c[a];
+  });
+  if (!ks.length) {
+    tagsEl.innerHTML = "";
+    syncNav();
+    return;
+  }
+  const btn = (t, n) => `<button type="button" data-t="${t.replace(/"/g, "&quot;")}"${(t || null) === TAG ? ' class="on"' : ""}>${t || "\u5168\u90E8"}<u>${n}</u></button>`;
+  tagsEl.innerHTML = "<i>kinds</i>" + btn("", LIST.length) + ks.map((t) => btn(t, c[t])).join("");
+  tagsEl.querySelector("i").onclick = () => tagsEl.classList.toggle("open");
+  tagsEl.querySelectorAll("button").forEach((b) => b.onclick = () => {
+    if (!tagsEl.classList.contains("open")) {
+      tagsEl.classList.add("open");
+      return;
+    }
+    tagsEl.classList.remove("open");
+    const t = b.dataset.t || null;
+    if (t !== TAG) setTag(t);
+  });
+  syncNav();
+}
+function syncNav() {
+  MONS.forEach((t, k) => {
+    let has = false;
+    for (let j = t.i; j < t.i + t.n; j++) if (tagOk(j)) {
+      has = true;
+      break;
+    }
+    t.has = has;
+    const b = nav.children[k];
+    if (b) b.style.display = has ? "" : "none";
+  });
+}
+function setTag(t) {
+  if (busy || lb.classList.contains("on") || !PH.length) return;
+  TAG = t;
+  renderTags();
+  buzz();
+  if (MODE === "flat") {
+    rebase();
+    vpan.x = vpan.y = 0;
+    tpan = null;
+    flatTo(0, 260);
+    return;
+  }
+  if (MODE === "pile") {
+    pileTo(320, 620);
+    return;
+  }
+  if (!TAG) return;
+  let best = null, bd = Infinity;
+  for (const it of PH) {
+    if (!tagOk(it.i)) continue;
+    const rel = it.home.z + C;
+    if (rel < -150 && rel > -2400) return;
+    const d = Math.abs(rel + 700);
+    if (d < bd) {
+      bd = d;
+      best = it;
+    }
+  }
+  if (best) {
+    flyTo(-best.home.z - 700);
+    tYaw = Math.round(yaw / 360) * 360;
+    tPitch = 0;
+  }
+}
+stage.addEventListener("pointerup", upStage);
+stage.addEventListener("pointercancel", (e) => {
+  sp.delete(e.pointerId);
+  if (drag && drag.pile != null && drag.moved && MODE === "pile") pileRelease(0, 0, 0, 0);
+  drag = null;
+  pinch = null;
+});
+addEventListener("wheel", (e) => {
+  if (lb.classList.contains("on")) return;
+  if (MODE === "flat" && !e.ctrlKey) {
+    const B = flatBounds();
+    tpan = null;
+    vpan.x = vpan.y = 0;
+    pan.y = cl(pan.y + e.deltaY * FD / p, B.minY, B.maxY);
+    return;
+  }
+  if (MODE === "flat") {
+    const P = P0();
+    tp = cl(tp * Math.exp(-e.deltaY * 12e-4), P * 0.85, P * 2.2);
+    zoomed = true;
+    return;
+  }
+  if (MODE === "sky") {
+    const dir = Math.cos(yaw * RAD) >= 0 ? 1 : -1;
+    flyC = null;
+    intro = null;
+    vC = 0;
+    C = cl(C + e.deltaY * 1.1 * dir, 0, END);
+    doneTip("shelfTipSky");
+  }
+}, { passive: true });
+addEventListener("resize", () => {
+  skySize();
+});
+const lb = $("#lb"), hold = lb.querySelector(".hold"), lift = lb.querySelector(".lift"), card = lb.querySelector(".card");
+let CUR = -1, busy = false, HELD = null, fillT = 0;
+const backT = card.querySelector(".b .t"), moreFade = () => backT.classList.toggle("more", backT.scrollTop + backT.clientHeight < backT.scrollHeight - 4);
+backT.addEventListener("scroll", moreFade, { passive: true });
+function size(s) {
+  const a = ar(s);
+  let W = Math.min(innerWidth * 0.82, 460), H = W / a;
+  if (H > innerHeight * 0.64) {
+    H = innerHeight * 0.64;
+    W = H * a;
+  }
+  return [W, H];
+}
+function fill(i) {
+  const s = LIST[i];
+  const [W, H] = size(s);
+  card.style.width = W + "px";
+  card.style.height = H + "px";
+  card.style.marginLeft = -W / 2 + "px";
+  card.style.marginTop = -H / 2 + "px";
+  card.classList.toggle("wide", W / H > 1.05);
+  const img = card.querySelector(".f img");
+  img.style.transition = "none";
+  card.classList.toggle("bl", !!PH[i]?.el.classList.contains("bl"));
+  img.offsetWidth;
+  img.style.transition = "";
+  img.src = thumb(s.file);
+  clearTimeout(fillT);
+  fillT = setTimeout(() => {
+    if (CUR !== i || !lb.classList.contains("on")) return;
+    const im = new Image();
+    im.src = full(s.file);
+    (im.decode ? im.decode() : new Promise((ok, no) => {
+      im.onload = ok;
+      im.onerror = no;
+    })).then(() => {
+      if (CUR === i && lb.classList.contains("on")) img.src = im.src;
+    }).catch(() => {
+    });
+  }, 650);
+  const tx = card.querySelector(".t");
+  card.querySelector(".d").innerHTML = dateHtml(s);
+  tx.innerHTML = String(s.caption || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+?)`/g, "$1");
+  tx.scrollTop = 0;
+  card.style.setProperty("--ch", H + "px");
+  requestAnimationFrame(moreFade);
+  const pw = Math.max(9, (W + H) / 36), fp = card.querySelector(".fp"), bp = card.querySelector(".bp"), sl = isSlip(s);
+  card.classList.toggle("slip", sl);
+  if (sl) {
+    for (const e of [fp, bp]) {
+      e.style.removeProperty("--dk");
+      e.style.removeProperty("--rim");
+    }
+  } else {
+    dress(fp, W + 28, H + 28, pw, 2.8, i);
+    requestAnimationFrame(() => dress(bp, bp.offsetWidth, bp.offsetHeight, pw, 2.8, i + 500));
+  }
+  return [W, H];
+}
+function fromIt(it, W, H) {
+  const r = it.el.getBoundingClientRect(), cx = innerWidth / 2, cy = innerHeight * 0.47;
+  const s = Math.max(0.05, Math.min(r.width / W, r.height / H) * 1.04);
+  return `translate(${r.left + r.width / 2 - cx}px,${r.top + r.height / 2 - cy}px) rotateZ(${it.cur.rz}deg) scale(${s})`;
+}
+function hide(it) {
+  if (HELD && HELD !== it.el) HELD.style.visibility = "";
+  HELD = it.el;
+  it.el.style.visibility = "hidden";
+  for (const q of PH) q.v0 = null;
+}
+function unhide() {
+  if (HELD) HELD.style.visibility = "";
+  HELD = null;
+  for (const q of PH) q.v0 = null;
+}
+function openLb(i) {
+  if (busy || lb.classList.contains("on")) return;
+  busy = true;
+  CUR = i;
+  const it = PH[i];
+  const [W, H] = fill(i);
+  card.classList.remove("flip");
+  hold.style.transition = "none";
+  hold.style.transform = fromIt(it, W, H);
+  hide(it);
+  buzz();
+  history.pushState({ shelfLb: 1 }, "");
+  LB_LEN = history.length;
+  lb.classList.add("on");
+  document.body.classList.add("lbon");
+  hold.offsetWidth;
+  hold.style.transition = "transform .62s cubic-bezier(.2,.75,.2,1)";
+  hold.style.transform = "none";
+  doneTip("shelfTipSky");
+  showTip("shelfTipHold", "\u70B9\u4E00\u4E0B\u7FFB\u8FC7\u6765 \xB7 \u5DE6\u53F3\u62E8\u6362\u4E00\u5F20 \xB7 \u5F80\u4E0B\u62C9\u653E\u56DE\u53BB");
+  setTimeout(() => busy = false, 620);
+}
+let LB_LEN = -1;
+function closeLb(fromPop) {
+  if (!fromPop && history.state && history.state.shelfLb && history.length === LB_LEN) {
+    LB_LEN = -1;
+    history.back();
+    return;
+  }
+  if (busy) return;
+  busy = true;
+  const it = PH[CUR];
+  lb.style.removeProperty("--bd");
+  const [W, H] = size(LIST[CUR]);
+  card.classList.remove("flip");
+  hold.style.transition = "transform .58s cubic-bezier(.5,0,.3,1)";
+  hold.style.transform = fromIt(it, W, H);
+  lb.classList.remove("on");
+  document.body.classList.remove("lbon");
+  setTimeout(() => {
+    unhide();
+    hold.style.transition = "none";
+    hold.style.transform = "none";
+    busy = false;
+    idleAt = performance.now();
+  }, 590);
+  if (tip.dataset.k === "shelfTipHold") tip.classList.remove("on");
+}
+function flipCard() {
+  card.classList.toggle("flip");
+  lift.animate([{ transform: "scale(1)" }, { transform: "scale(1.07)", offset: 0.45 }, { transform: "scale(1)" }], { duration: 760, easing: "ease-in-out" });
+  doneTip("shelfTipHold");
+}
+function settle() {
+  hold.style.transition = "transform .42s cubic-bezier(.3,1.4,.5,1)";
+  hold.style.transform = "none";
+}
+function nextOk(k) {
+  for (let j = CUR + k; j >= 0 && j < LIST.length; j += k) if (tagOk(j)) return j;
+  return -1;
+}
+function go(k) {
+  const j = nextOk(k);
+  if (j < 0 || busy) {
+    settle();
+    return;
+  }
+  busy = true;
+  const flipped = card.classList.contains("flip");
+  hold.style.transition = "transform .3s cubic-bezier(.5,0,.8,.4)";
+  hold.style.transform = `translate(${-k * innerWidth * 1.1}px,0) rotate(${-k * 7}deg)`;
+  buzz();
+  setTimeout(() => {
+    CUR = j;
+    hide(PH[j]);
+    card.style.transition = "none";
+    card.classList.toggle("flip", flipped);
+    fill(j);
+    card.offsetWidth;
+    card.style.transition = "";
+    hold.style.transition = "none";
+    hold.style.transform = `translate(${k * innerWidth * 1.1}px,0) rotate(${k * 7}deg)`;
+    hold.offsetWidth;
+    hold.style.transition = "transform .48s cubic-bezier(.2,.8,.25,1)";
+    hold.style.transform = "none";
+    setTimeout(() => busy = false, 480);
+  }, 300);
+  doneTip("shelfTipHold");
+}
+const pts = /* @__PURE__ */ new Map(), zoom = lb.querySelector(".zoom");
+let p0 = null, pin = null;
+function buzz() {
+  try {
+    navigator.vibrate && navigator.vibrate(8);
+  } catch (e) {
+  }
+}
+lb.addEventListener("pointerdown", (e) => {
+  if (busy) return;
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pts.size === 2) {
+    const [a, b] = [...pts.values()];
+    pin = { d0: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), mx: (a.x + b.x) / 2 - innerWidth / 2, my: (a.y + b.y) / 2 - innerHeight * 0.47 };
+    p0 = null;
+    settle();
+    lb.style.removeProperty("--bd");
+    zoom.style.transition = "none";
+    return;
+  }
+  if (pts.size > 1) return;
+  const canRead = card.classList.contains("flip") && backT.contains(e.target) && backT.scrollHeight > backT.clientHeight + 4;
+  cancelAnimationFrame(readCoast);
+  p0 = { x: e.clientX, y: e.clientY, on: hold.contains(e.target), lx: e.clientX, ly: e.clientY, lt: performance.now(), v: 0, vy: 0, txt: canRead ? backT.scrollTop : null };
+});
+let readCoast = 0;
+function coastRead(v) {
+  let last = performance.now();
+  const t = (T) => {
+    const dt = Math.min(40, T - last);
+    last = T;
+    backT.scrollTop -= v * dt;
+    v *= Math.pow(0.94, dt / 16);
+    moreFade();
+    if (Math.abs(v) > 0.02) readCoast = requestAnimationFrame(t);
+  };
+  readCoast = requestAnimationFrame(t);
+}
+lb.addEventListener("pointermove", (e) => {
+  if (!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pin) {
+    if (pts.size < 2) return;
+    const [a, b] = [...pts.values()], k = Math.max(1, Math.min(4, Math.hypot(a.x - b.x, a.y - b.y) / pin.d0)), mx = (a.x + b.x) / 2 - innerWidth / 2, my = (a.y + b.y) / 2 - innerHeight * 0.47;
+    zoom.style.transform = `translate(${(mx - k * pin.mx).toFixed(1)}px,${(my - k * pin.my).toFixed(1)}px) scale(${k.toFixed(3)})`;
+    return;
+  }
+  if (!p0 || busy) return;
+  const now = performance.now();
+  let dx = e.clientX - p0.x;
+  const dy = e.clientY - p0.y;
+  p0.v = (e.clientX - p0.lx) / Math.max(1, now - p0.lt);
+  p0.vy = (e.clientY - p0.ly) / Math.max(1, now - p0.lt);
+  p0.lx = e.clientX;
+  p0.ly = e.clientY;
+  p0.lt = now;
+  if (!p0.mode && Math.hypot(dx, dy) > 8) p0.mode = Math.abs(dx) > Math.abs(dy) ? "x" : p0.txt != null && !(dy > 0 && p0.txt <= 0) ? "s" : dy > 0 ? "y" : "n";
+  if (p0.mode === "s") {
+    backT.scrollTop = p0.txt - dy;
+    moreFade();
+    return;
+  }
+  if (p0.mode === "x") {
+    const end = dx < 0 && nextOk(1) < 0 || dx > 0 && nextOk(-1) < 0;
+    if (end) dx *= 0.3;
+    hold.style.transition = "none";
+    hold.style.transform = `translate(${dx}px,0) rotate(${dx / 38}deg)`;
+  } else if (p0.mode === "y") {
+    const k = Math.max(0, dy);
+    hold.style.transition = "none";
+    hold.style.transform = `translate(${dx * 0.3}px,${k}px) scale(${1 - Math.min(0.22, k / 1500)}) rotate(${dx / 90}deg)`;
+    lb.style.setProperty("--bd", String(1 - Math.min(0.8, k / 380)));
+  }
+});
+function endPtr(e) {
+  if (!pts.has(e.pointerId)) return;
+  pts.delete(e.pointerId);
+  if (pin) {
+    if (pts.size < 2) {
+      zoom.style.transition = "transform .45s cubic-bezier(.3,1.3,.5,1)";
+      zoom.style.transform = "";
+      pin = null;
+    }
+    return;
+  }
+  if (!p0) return;
+  const dx = e.clientX - p0.x, dy = e.clientY - p0.y, q = p0;
+  p0 = null;
+  if (busy) return;
+  if (q.mode === "x") {
+    if (Math.abs(dx) > 70 || Math.abs(q.v) > 0.55 && Math.abs(dx) > 18) go(dx < 0 ? 1 : -1);
+    else settle();
+    return;
+  }
+  if (q.mode === "s") {
+    if (performance.now() - q.lt < 80 && Math.abs(q.vy) > 0.08) coastRead(q.vy);
+    return;
+  }
+  if (q.mode === "y") {
+    if (dy > 90) closeLb();
+    else {
+      lb.style.removeProperty("--bd");
+      settle();
+    }
+    return;
+  }
+  if (q.mode === "n") {
+    settle();
+    return;
+  }
+  if (q.on) {
+    if (card.classList.contains("bl")) {
+      card.classList.remove("bl");
+      setBl(PH[CUR], false);
+      buzz();
+      syncBlind();
+      return;
+    }
+    flipCard();
+  } else closeLb();
+}
+lb.addEventListener("pointerup", endPtr);
+lb.addEventListener("pointercancel", (e) => {
+  pts.delete(e.pointerId);
+  p0 = null;
+  pin = null;
+  lb.style.removeProperty("--bd");
+  zoom.style.transition = "transform .3s";
+  zoom.style.transform = "";
+  settle();
+});
+addEventListener("popstate", () => {
+  const t = () => {
+    if (!lb.classList.contains("on")) return;
+    if (busy) {
+      setTimeout(t, 120);
+      return;
+    }
+    closeLb(true);
+  };
+  t();
+});
+addEventListener("keydown", (e) => {
+  if (!lb.classList.contains("on")) return;
+  if (e.key === "ArrowRight") go(1);
+  if (e.key === "ArrowLeft") go(-1);
+  if (e.key === " ") flipCard();
+  if (e.key === "Escape") closeLb();
+});
+$("#credit").textContent = "sky: John Constable, Cloud Study, 1821 \xB7 backs: N.E. Lusher & Sun, Bermuda";
+let LAST = "";
+async function load(first) {
+  const txt = await (await fetch("photos.json", { cache: "no-cache" })).text();
+  if (txt === LAST) return;
+  if (!first && (MODE !== "sky" || lb.classList.contains("on") || moving || busy)) return;
+  const keep = first ? null : { C, yaw, pitch };
+  LAST = txt;
+  const J = JSON.parse(txt);
+  GROUP = J.group || "month";
+  build(Array.isArray(J) ? J : J.photos || []);
+  if (keep) {
+    intro = null;
+    C = Math.min(keep.C, END);
+    yaw = keep.yaw;
+    pitch = keep.pitch;
+    tYaw = tPitch = null;
+  }
+  syncBlind();
+}
+load(true).then(() => showTip("shelfTipSky", "\u4E00\u6307\u8F6C\u5934 \xB7 \u4E24\u6307\u5F20\u5F00\u5F80\u524D\u3001\u634F\u62E2\u5F80\u540E")).catch(() => {
+  tip.textContent = "\u6CA1\u8BFB\u5230 photos.json\u2014\u2014\u5148\u8DD1\u4E00\u904D tools/bake.py";
+  tip.classList.add("on");
+});
+</script>
+</body>
+</html>
